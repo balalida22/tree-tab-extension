@@ -321,6 +321,86 @@
               }
             }
           ]
+        },
+        {
+          "id": "1.9",
+          "label": "Declare Firefox data-collection consent for extension publication",
+          "children": [
+            {
+              "id": "1.9.1",
+              "label": "Confirm the extension does not transmit user data",
+              "children": [
+                {
+                  "id": "1.9.1.1",
+                  "label": "rg -n \"fetch\\(|XMLHttpRequest|WebSocket|sendBeacon|https?://|browser\\.(tabs|storage|runtime|contextMenus)|chrome\\.\" --glob '!web-ext-artifacts/**' --glob '*.{js,mjs,html,json}' .",
+                  "evidence": {
+                    "kind": "search",
+                    "value": "rg -n \"fetch\\(|XMLHttpRequest|WebSocket|sendBeacon|https?://|browser\\.(tabs|storage|runtime|contextMenus)|chrome\\.\" --glob '!web-ext-artifacts/**' --glob '*.{js,mjs,html,json}' .",
+                    "result": "Observed Firefox tab, runtime, context-menu, and local-storage API use with no outbound fetch, XMLHttpRequest, WebSocket, or sendBeacon calls."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.9.2",
+              "label": "Add the required no-data-collection declaration",
+              "children": [
+                {
+                  "id": "1.9.2.1",
+                  "label": "Declare Firefox's required none data-collection permission",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "manifest.json",
+                    "file_changes": [
+                      {
+                        "path": "manifest.json",
+                        "action": "modify",
+                        "additions": 4,
+                        "deletions": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.9.3",
+              "label": "Validate the manifest and regression suite",
+              "children": [
+                {
+                  "id": "1.9.3.1",
+                  "label": "git diff -- manifest.json && node -e \"JSON.parse(require('fs').readFileSync('manifest.json', 'utf8')); console.log('manifest.json: valid JSON')\" && node --test tests/tree-model.test.mjs && if command -v web-ext >/dev/null 2>&1; then web-ext lint --source-dir . --ignore-files 'web-ext-artifacts/**'; else echo 'web-ext: not installed; skipped extension lint'; fi",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "git diff -- manifest.json && node -e \"JSON.parse(require('fs').readFileSync('manifest.json', 'utf8')); console.log('manifest.json: valid JSON')\" && node --test tests/tree-model.test.mjs && if command -v web-ext >/dev/null 2>&1; then web-ext lint --source-dir . --ignore-files 'web-ext-artifacts/**'; else echo 'web-ext: not installed; skipped extension lint'; fi",
+                    "result": "The manifest parsed as valid JSON and the tree-model test passed; web-ext was unavailable, so its lint step was skipped."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.9.4",
+              "label": "Record the Firefox consent fix in the ATML evidence map",
+              "children": [
+                {
+                  "id": "1.9.4.1",
+                  "label": "Update the trace with the manifest change and observed verification",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "traces.json",
+                    "file_changes": [
+                      {
+                        "path": "traces.json",
+                        "action": "modify",
+                        "additions": null,
+                        "deletions": null
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
