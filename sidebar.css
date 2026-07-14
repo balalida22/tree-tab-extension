@@ -411,6 +411,12 @@ h1 {
   font-size: 10px;
 }
 
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

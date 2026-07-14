@@ -675,6 +675,180 @@
               ]
             }
           ]
+        },
+        {
+          "id": "1.12",
+          "label": "Add a right-aligned expand-all tree action",
+          "children": [
+            {
+              "id": "1.12.1",
+              "label": "Place paired collapse and expand controls in the footer",
+              "children": [
+                {
+                  "id": "1.12.1.1",
+                  "label": "Add Expand all after Collapse all in a shared footer action group",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "sidebar.html",
+                    "file_changes": [
+                      {
+                        "path": "sidebar.html",
+                        "action": "modify",
+                        "additions": 4,
+                        "deletions": 1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.12.1.2",
+                  "label": "Keep the paired footer actions aligned at the bottom right",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "sidebar.css",
+                    "file_changes": [
+                      {
+                        "path": "sidebar.css",
+                        "action": "modify",
+                        "additions": 6,
+                        "deletions": 0
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.12.2",
+              "label": "Share collapse-state persistence between both bulk actions",
+              "children": [
+                {
+                  "id": "1.12.2.1",
+                  "label": "Add symmetric collapse-all and expand-all handlers through one state helper",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "sidebar.js",
+                    "file_changes": [
+                      {
+                        "path": "sidebar.js",
+                        "action": "modify",
+                        "additions": 12,
+                        "deletions": 3
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.12.3",
+              "label": "Prepare the expand-all feature as AMO version 1.0.2",
+              "children": [
+                {
+                  "id": "1.12.3.1",
+                  "label": "Advance the extension package version to 1.0.2",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "manifest.json",
+                    "file_changes": [
+                      {
+                        "path": "manifest.json",
+                        "action": "modify",
+                        "additions": 1,
+                        "deletions": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.12.4",
+              "label": "Verify interaction wiring, syntax, tests, and extension validation",
+              "children": [
+                {
+                  "id": "1.12.4.1",
+                  "label": "node --test tests/tree-model.test.mjs && node --check sidebar.js && node -e \"const fs=require('fs'); const html=fs.readFileSync('sidebar.html','utf8'); const js=fs.readFileSync('sidebar.js','utf8'); const css=fs.readFileSync('sidebar.css','utf8'); const manifest=JSON.parse(fs.readFileSync('manifest.json','utf8')); if(html.indexOf('id=\\\"expand-all\\\"') < html.indexOf('id=\\\"collapse-all\\\"')) throw new Error('expand button order'); if(!js.includes('getElementById(\\\"expand-all\\\")') || !js.includes('setAllCollapsed(false)')) throw new Error('expand handler'); if(!css.includes('.footer-actions')) throw new Error('footer action layout'); if(manifest.version !== '1.0.2') throw new Error('version'); console.log('expand-all footer action: valid')\"",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "node --test tests/tree-model.test.mjs && node --check sidebar.js && node -e \"const fs=require('fs'); const html=fs.readFileSync('sidebar.html','utf8'); const js=fs.readFileSync('sidebar.js','utf8'); const css=fs.readFileSync('sidebar.css','utf8'); const manifest=JSON.parse(fs.readFileSync('manifest.json','utf8')); if(html.indexOf('id=\\\"expand-all\\\"') < html.indexOf('id=\\\"collapse-all\\\"')) throw new Error('expand button order'); if(!js.includes('getElementById(\\\"expand-all\\\")') || !js.includes('setAllCollapsed(false)')) throw new Error('expand handler'); if(!css.includes('.footer-actions')) throw new Error('footer action layout'); if(manifest.version !== '1.0.2') throw new Error('version'); console.log('expand-all footer action: valid')\"",
+                    "result": "The tree-model test and sidebar syntax check passed; button order, handler wiring, footer layout, and version 1.0.2 validated."
+                  }
+                },
+                {
+                  "id": "1.12.4.2",
+                  "label": "npx web-ext@latest lint --source-dir . --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "npx web-ext@latest lint --source-dir . --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                    "result": "Validation completed with 0 errors, 0 notices, and 0 warnings."
+                  }
+                },
+                {
+                  "id": "1.12.4.3",
+                  "label": "git diff --numstat -- manifest.json sidebar.html sidebar.css sidebar.js && git diff -- manifest.json sidebar.html sidebar.css sidebar.js",
+                  "evidence": {
+                    "kind": "inspect_diff",
+                    "value": "git diff --numstat -- manifest.json sidebar.html sidebar.css sidebar.js && git diff -- manifest.json sidebar.html sidebar.css sidebar.js",
+                    "result": "Observed the version bump, paired footer markup and layout, and symmetric bulk-collapse state helper with attributable per-file line counts."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.12.5",
+              "label": "Build the Firefox 1.0.2 upload package",
+              "children": [
+                {
+                  "id": "1.12.5.1",
+                  "label": "npx web-ext@latest build --source-dir . --overwrite-dest --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "npx web-ext@latest build --source-dir . --overwrite-dest --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                    "result": "Built web-ext-artifacts/tree_tabs-1.0.2.zip successfully."
+                  }
+                },
+                {
+                  "id": "1.12.5.2",
+                  "label": "Create the Firefox 1.0.2 upload archive",
+                  "evidence": {
+                    "kind": "create_file",
+                    "value": "web-ext-artifacts/tree_tabs-1.0.2.zip",
+                    "file_changes": [
+                      {
+                        "path": "web-ext-artifacts/tree_tabs-1.0.2.zip",
+                        "action": "create",
+                        "additions": null,
+                        "deletions": 0
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.12.6",
+              "label": "Record the footer-action implementation evidence",
+              "children": [
+                {
+                  "id": "1.12.6.1",
+                  "label": "Update the trace with expand-all implementation and verification evidence",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "traces.json",
+                    "file_changes": [
+                      {
+                        "path": "traces.json",
+                        "action": "modify",
+                        "additions": null,
+                        "deletions": null
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },

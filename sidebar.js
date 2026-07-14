@@ -442,11 +442,20 @@ document.getElementById("refresh").addEventListener("click", () => {
   void refresh();
 });
 
-document.getElementById("collapse-all").addEventListener("click", () => {
-  const roots = buildTree(state.tabs);
-  state.collapsed = new Set(allBranchIds(roots));
+function setAllCollapsed(collapsed) {
+  state.collapsed = collapsed
+    ? new Set(allBranchIds(buildTree(state.tabs)))
+    : new Set();
   saveCollapsedState();
   render();
+}
+
+document.getElementById("collapse-all").addEventListener("click", () => {
+  setAllCollapsed(true);
+});
+
+document.getElementById("expand-all").addEventListener("click", () => {
+  setAllCollapsed(false);
 });
 
 treeElement.addEventListener("click", (event) => {
