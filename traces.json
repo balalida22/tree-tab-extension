@@ -527,6 +527,154 @@
               ]
             }
           ]
+        },
+        {
+          "id": "1.11",
+          "label": "Fix the tab-tree empty-state visibility",
+          "children": [
+            {
+              "id": "1.11.1",
+              "label": "Trace the rendered visibility state to its conflicting CSS rule",
+              "children": [
+                {
+                  "id": "1.11.1.1",
+                  "label": "nl -ba sidebar.js | sed -n '196,220p'; nl -ba sidebar.css | sed -n '340,365p'; nl -ba sidebar.html | sed -n '25,38p'",
+                  "evidence": {
+                    "kind": "inspect_diff",
+                    "value": "nl -ba sidebar.js | sed -n '196,220p'; nl -ba sidebar.css | sed -n '340,365p'; nl -ba sidebar.html | sed -n '25,38p'",
+                    "result": "Observed render() setting the empty section's hidden property for nonzero tab counts while the empty-state class independently forced display:flex."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.11.2",
+              "label": "Make semantic hidden state authoritative across sidebar layouts",
+              "children": [
+                {
+                  "id": "1.11.2.1",
+                  "label": "Prevent display layout rules from overriding hidden elements",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "sidebar.css",
+                    "file_changes": [
+                      {
+                        "path": "sidebar.css",
+                        "action": "modify",
+                        "additions": 4,
+                        "deletions": 0
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.11.3",
+              "label": "Prepare a distinct AMO update version",
+              "children": [
+                {
+                  "id": "1.11.3.1",
+                  "label": "Advance the submitted extension from version 1.0.0 to 1.0.1",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "manifest.json",
+                    "file_changes": [
+                      {
+                        "path": "manifest.json",
+                        "action": "modify",
+                        "additions": 1,
+                        "deletions": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.11.4",
+              "label": "Verify the visibility invariant and existing tree model",
+              "children": [
+                {
+                  "id": "1.11.4.1",
+                  "label": "node --test tests/tree-model.test.mjs && node -e \"const fs=require('fs'); const manifest=JSON.parse(fs.readFileSync('manifest.json','utf8')); if(manifest.version !== '1.0.1') throw new Error('unexpected version'); const css=fs.readFileSync('sidebar.css','utf8'); if(!/\\[hidden\\]\\s*\\{\\s*display:\\s*none\\s*!important;\\s*\\}/m.test(css)) throw new Error('missing hidden override'); console.log('empty-state visibility fix: valid')\"",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "node --test tests/tree-model.test.mjs && node -e \"const fs=require('fs'); const manifest=JSON.parse(fs.readFileSync('manifest.json','utf8')); if(manifest.version !== '1.0.1') throw new Error('unexpected version'); const css=fs.readFileSync('sidebar.css','utf8'); if(!/\\[hidden\\]\\s*\\{\\s*display:\\s*none\\s*!important;\\s*\\}/m.test(css)) throw new Error('missing hidden override'); console.log('empty-state visibility fix: valid')\"",
+                    "result": "The tree-model test passed, the manifest reported version 1.0.1, and the authoritative hidden CSS rule was present."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.11.5",
+              "label": "Lint and package the corrected extension",
+              "children": [
+                {
+                  "id": "1.11.5.1",
+                  "label": "npx web-ext@latest lint --source-dir . --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "npx web-ext@latest lint --source-dir . --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                    "result": "Validation completed with 0 errors, 0 notices, and 0 warnings."
+                  }
+                },
+                {
+                  "id": "1.11.5.2",
+                  "label": "npx web-ext@latest build --source-dir . --overwrite-dest --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "npx web-ext@latest build --source-dir . --overwrite-dest --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                    "result": "Built web-ext-artifacts/tree_tabs-1.0.1.zip successfully."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.11.6",
+              "label": "Create the corrected upload artifact",
+              "children": [
+                {
+                  "id": "1.11.6.1",
+                  "label": "Create the Firefox 1.0.1 upload archive",
+                  "evidence": {
+                    "kind": "create_file",
+                    "value": "web-ext-artifacts/tree_tabs-1.0.1.zip",
+                    "file_changes": [
+                      {
+                        "path": "web-ext-artifacts/tree_tabs-1.0.1.zip",
+                        "action": "create",
+                        "additions": null,
+                        "deletions": 0
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.11.7",
+              "label": "Record the diagnosis, fix, and verification evidence",
+              "children": [
+                {
+                  "id": "1.11.7.1",
+                  "label": "Update the trace with empty-state and packaging evidence",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "traces.json",
+                    "file_changes": [
+                      {
+                        "path": "traces.json",
+                        "action": "modify",
+                        "additions": null,
+                        "deletions": null
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
