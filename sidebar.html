@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="color-scheme" content="light dark">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tree Tabs</title>
+    <link rel="stylesheet" href="sidebar.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">⌘</div>
+        <div>
+          <h1>Tree Tabs</h1>
+          <p id="window-label">Current window</p>
+        </div>
+      </div>
+      <div class="toolbar" aria-label="Tab actions">
+        <button id="new-root" class="toolbar-button" type="button" title="New top-level tab (Ctrl+Alt+T)" aria-label="New top-level tab">＋</button>
+        <button id="new-child" class="toolbar-button toolbar-button-accent" type="button" title="New child tab (Ctrl+Alt+Shift+T)" aria-label="New child tab">↳</button>
+        <button id="refresh" class="toolbar-button" type="button" title="Refresh tabs" aria-label="Refresh tabs">↻</button>
+      </div>
+    </header>
+
+    <div id="message" class="message" role="status" aria-live="polite" hidden></div>
+
+    <main id="tree" class="tree" role="tree" aria-label="Tabs"></main>
+
+    <section id="empty-state" class="empty-state" hidden>
+      <div class="empty-glyph" aria-hidden="true">⌁</div>
+      <h2>No tabs in this tree</h2>
+      <p>Create a top-level tab, then open related pages as children beneath it.</p>
+      <button id="empty-new-root" class="primary-button" type="button">Open a top-level tab</button>
+    </section>
+
+    <footer class="app-footer">
+      <span id="tab-count">0 tabs</span>
+      <button id="collapse-all" class="footer-button" type="button">Collapse all</button>
+    </footer>
+
+    <script type="module" src="sidebar.js"></script>
+  </body>
+</html>

@@ -1,0 +1,320 @@
+{
+  "atml": "1.0",
+  "tree": [
+    {
+      "id": "1",
+      "label": "Deliver a minimum tree-organized desktop web browser",
+      "children": [
+        {
+          "id": "1.1",
+          "label": "Define the uv-managed Python application package",
+          "children": [
+            {
+              "id": "1.1.1",
+              "label": "Configure the package metadata, Qt dependency, console launcher, and test settings",
+              "evidence": {
+                "kind": "create_file",
+                "value": "pyproject.toml",
+                "file_changes": [{"path": "pyproject.toml", "action": "create", "additions": 27, "deletions": 0}]
+              }
+            },
+            {
+              "id": "1.1.2",
+              "label": "Create the browser package marker",
+              "evidence": {
+                "kind": "create_file",
+                "value": "src/tree_browser/__init__.py",
+                "file_changes": [{"path": "src/tree_browser/__init__.py", "action": "create", "additions": 1, "deletions": 0}]
+              }
+            },
+            {
+              "id": "1.1.3",
+              "label": "Lock resolved Python dependencies for reproducible uv installs",
+              "evidence": {
+                "kind": "create_file",
+                "value": "uv.lock",
+                "file_changes": [{"path": "uv.lock", "action": "create", "additions": 221, "deletions": 0}]
+              }
+            },
+            {
+              "id": "1.1.4",
+              "label": "Exclude virtual environments and Python caches from project files",
+              "evidence": {
+                "kind": "create_file",
+                "value": ".gitignore",
+                "file_changes": [{"path": ".gitignore", "action": "create", "additions": 4, "deletions": 0}]
+              }
+            }
+          ]
+        },
+        {
+          "id": "1.2",
+          "label": "Implement hierarchical tab browsing and navigation",
+          "children": [
+            {
+              "id": "1.2.1",
+              "label": "Create the Qt window, tab tree, stacked browser views, navigation controls, and URL handling",
+              "evidence": {
+                "kind": "create_file",
+                "value": "src/tree_browser/app.py",
+                "file_changes": [{"path": "src/tree_browser/app.py", "action": "create", "additions": 197, "deletions": 0}]
+              }
+            },
+            {
+              "id": "1.2.2",
+              "label": "Cover empty addresses, domain normalization, and search-query conversion",
+              "evidence": {
+                "kind": "create_file",
+                "value": "tests/test_address.py",
+                "file_changes": [{"path": "tests/test_address.py", "action": "create", "additions": 13, "deletions": 0}]
+              }
+            },
+            {
+              "id": "1.2.3",
+              "label": "Route link-created browser windows into child tree nodes",
+              "evidence": {
+                "kind": "modify_file",
+                "value": "src/tree_browser/app.py",
+                "file_changes": [{"path": "src/tree_browser/app.py", "action": "modify", "additions": 26, "deletions": 16}]
+              }
+            },
+            {
+              "id": "1.2.4",
+              "label": "Extract testable URL normalization from the Qt interface",
+              "evidence": {
+                "kind": "create_file",
+                "value": "src/tree_browser/address.py",
+                "file_changes": [{"path": "src/tree_browser/address.py", "action": "create", "additions": 17, "deletions": 0}]
+              }
+            },
+            {
+              "id": "1.2.5",
+              "label": "Update URL normalization tests to run without loading Qt",
+              "evidence": {
+                "kind": "modify_file",
+                "value": "tests/test_address.py",
+                "file_changes": [{"path": "tests/test_address.py", "action": "modify", "additions": 4, "deletions": 4}]
+              }
+            }
+          ]
+        },
+        {
+          "id": "1.3",
+          "label": "Document local deployment and daily browser use",
+          "children": [
+            {
+              "id": "1.3.1",
+              "label": "Provide quick-start, tab-tree usage, deployment, and test instructions",
+              "evidence": {
+                "kind": "create_file",
+                "value": "README.md",
+                "file_changes": [{"path": "README.md", "action": "create", "additions": 46, "deletions": 0}]
+              }
+            },
+            {
+              "id": "1.3.2",
+              "label": "Document child-tab behavior for context-menu, Ctrl+click, and middle-click link opening",
+              "evidence": {
+                "kind": "modify_file",
+                "value": "README.md",
+                "file_changes": [{"path": "README.md", "action": "modify", "additions": 1, "deletions": 0}]
+              }
+            }
+          ]
+        },
+        {
+          "id": "1.4",
+          "label": "Record the implementation evidence map",
+          "children": [
+            {
+              "id": "1.4.1",
+              "label": "Create the ATML project trace",
+              "evidence": {
+                "kind": "create_file",
+                "value": "traces.json",
+                "file_changes": [{"path": "traces.json", "action": "create", "additions": null, "deletions": 0}]
+              }
+            }
+          ]
+        },
+        {
+          "id": "1.5",
+          "label": "Inspect the completed project files and line counts",
+          "children": [
+            {
+              "id": "1.5.1",
+              "label": "wc -l .gitignore README.md pyproject.toml src/tree_browser/__init__.py src/tree_browser/app.py tests/test_address.py uv.lock && rg --files -g '!*.pyc' -g '!*.lock' -g '!.venv/**' && sed -n '1,220p' README.md && sed -n '1,120p' pyproject.toml",
+              "evidence": {
+                "kind": "inspect_diff",
+                "value": "wc -l .gitignore README.md pyproject.toml src/tree_browser/__init__.py src/tree_browser/app.py tests/test_address.py uv.lock && rg --files -g '!*.pyc' -g '!*.lock' -g '!.venv/**' && sed -n '1,220p' README.md && sed -n '1,120p' pyproject.toml",
+                "result": "Observed 509 lines across the seven project artifacts and reviewed the README and package manifest."
+              }
+            }
+          ]
+        },
+        {
+          "id": "1.6",
+          "label": "Validate the trace document and final artifact inventory",
+          "children": [
+            {
+              "id": "1.6.1",
+              "label": "perl -MJSON::PP -0777 -e 'decode_json(<>)' traces.json && wc -l traces.json && rg --files -g '!*.pyc' -g '!*.lock' -g '!.venv/**' | sort",
+              "evidence": {
+                "kind": "run_command",
+                "value": "perl -MJSON::PP -0777 -e 'decode_json(<>)' traces.json && wc -l traces.json && rg --files -g '!*.pyc' -g '!*.lock' -g '!.venv/**' | sort",
+                "result": "JSON parsed successfully; the trace was 122 lines before recording this validation and the final source inventory was listed."
+              }
+            },
+            {
+              "id": "1.6.2",
+              "label": "sed -n '1,260p' traces.json && perl -MJSON::PP -0777 -e 'decode_json(<>)' traces.json && wc -l .gitignore README.md pyproject.toml src/tree_browser/__init__.py src/tree_browser/app.py tests/test_address.py traces.json uv.lock",
+              "evidence": {
+                "kind": "inspect_diff",
+                "value": "sed -n '1,260p' traces.json && perl -MJSON::PP -0777 -e 'decode_json(<>)' traces.json && wc -l .gitignore README.md pyproject.toml src/tree_browser/__init__.py src/tree_browser/app.py tests/test_address.py traces.json uv.lock",
+                "result": "Reviewed the ATML tree, confirmed valid JSON, and observed final line counts for all created project artifacts."
+              }
+            }
+          ]
+        },
+        {
+          "id": "1.7",
+          "label": "Inspect workspace-owned agent configuration directories",
+          "children": [
+            {
+              "id": "1.7.1",
+              "label": "find .agents .codex -maxdepth 3 -mindepth 1 -printf '%y %p\\n' | sort; ls -ld .agents .codex",
+              "evidence": {
+                "kind": "search",
+                "value": "find .agents .codex -maxdepth 3 -mindepth 1 -printf '%y %p\\n' | sort; ls -ld .agents .codex",
+                "result": "Both directories existed, were read-only, and contained no files or subdirectories."
+              }
+            }
+          ]
+        },
+        {
+          "id": "1.8",
+          "label": "Publish the completed browser project to GitHub",
+          "children": [
+            {
+              "id": "1.8.1",
+              "label": "Initialize the repository and publish the initial browser project",
+              "children": [
+                {
+                  "id": "1.8.1.1",
+                  "label": "git init -b main && git add .gitignore README.md pyproject.toml src tests traces.json uv.lock && git commit -m \"Build tree-organized Python browser\" && git remote add origin git@github.com:balalida22/tree-browser.git && git push -u origin main",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "git init -b main && git add .gitignore README.md pyproject.toml src tests traces.json uv.lock && git commit -m \"Build tree-organized Python browser\" && git remote add origin git@github.com:balalida22/tree-browser.git && git push -u origin main",
+                    "result": "Initialized main, created root commit e79258f with eight project files, and pushed main to github.com:balalida22/tree-browser.git."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.8.2",
+              "label": "Record the GitHub publication in the ATML evidence map",
+              "evidence": {
+                "kind": "modify_file",
+                "value": "traces.json",
+                "file_changes": [{"path": "traces.json", "action": "modify", "additions": null, "deletions": 0}]
+              }
+            },
+            {
+              "id": "1.8.3",
+              "label": "Validate the trace and amend the published commit with its delivery evidence",
+              "evidence": {
+                "kind": "modify_file",
+                "value": "traces.json",
+                "file_changes": [{"path": "traces.json", "action": "modify", "additions": null, "deletions": 0}]
+              }
+            },
+            {
+              "id": "1.8.4",
+              "label": "Validate and publish the trace amendment",
+              "children": [
+                {
+                  "id": "1.8.4.1",
+                  "label": "perl -MJSON::PP -0777 -e 'decode_json(<>)' traces.json && git add traces.json && git commit --amend --no-edit && git push --force-with-lease && git status --short --branch",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "perl -MJSON::PP -0777 -e 'decode_json(<>)' traces.json && git add traces.json && git commit --amend --no-edit && git push --force-with-lease && git status --short --branch",
+                    "result": "Validated the trace, amended the root commit as e98aaf0, force-with-lease pushed main, and observed a clean branch tracking origin/main."
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1.9",
+          "label": "Verify child-tab routing and URL helper behavior",
+          "children": [
+            {
+              "id": "1.9.1",
+              "label": "Run automated checks and inspect the child-tab change",
+              "children": [
+                {
+                  "id": "1.9.1.1",
+                  "label": "uv run pytest -q && uv run python -m compileall -q src && git diff --check && git diff -- src/tree_browser/app.py src/tree_browser/address.py tests/test_address.py README.md",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "uv run pytest -q && uv run python -m compileall -q src && git diff --check && git diff -- src/tree_browser/app.py src/tree_browser/address.py tests/test_address.py README.md",
+                    "result": "Three tests passed, compilation completed, whitespace checks passed, and the intended browser, URL helper, test, and documentation changes were reviewed."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.9.2",
+              "label": "Record the child-tab implementation and verification evidence",
+              "evidence": {
+                "kind": "modify_file",
+                "value": "traces.json",
+                "file_changes": [{"path": "traces.json", "action": "modify", "additions": null, "deletions": 0}]
+              }
+            },
+            {
+              "id": "1.9.3",
+              "label": "Separate command evidence into dedicated summary branches for ATML validation",
+              "evidence": {
+                "kind": "modify_file",
+                "value": "traces.json",
+                "file_changes": [{"path": "traces.json", "action": "modify", "additions": null, "deletions": 0}]
+              }
+            }
+          ]
+        },
+        {
+          "id": "1.10",
+          "label": "Publish child-tab link-opening support",
+          "children": [
+            {
+              "id": "1.10.1",
+              "label": "Commit and push the completed child-tab feature",
+              "children": [
+                {
+                  "id": "1.10.1.1",
+                  "label": "git status --short --branch && git add README.md src/tree_browser/app.py src/tree_browser/address.py tests/test_address.py traces.json && git commit -m \"Open linked pages as child tabs\" && git push && git status --short --branch",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "git status --short --branch && git add README.md src/tree_browser/app.py src/tree_browser/address.py tests/test_address.py traces.json && git commit -m \"Open linked pages as child tabs\" && git push && git status --short --branch",
+                    "result": "Committed five files as 7a2e949, pushed main to GitHub, and observed a clean branch tracking origin/main."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.10.2",
+              "label": "Record the child-tab feature publication",
+              "evidence": {
+                "kind": "modify_file",
+                "value": "traces.json",
+                "file_changes": [{"path": "traces.json", "action": "modify", "additions": null, "deletions": 0}]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

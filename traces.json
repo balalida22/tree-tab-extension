@@ -1,0 +1,328 @@
+{
+  "atml": "1.0",
+  "tree": [
+    {
+      "id": "1",
+      "label": "Deliver a Firefox extension for vertical tree-organized tabs",
+      "children": [
+        {
+          "id": "1.1",
+          "label": "Recover the previous tree-browser interaction model",
+          "children": [
+            {
+              "id": "1.1.1",
+              "label": "Read tree-browser-README.md to identify the prior tab-tree behavior and deployment boundary",
+              "evidence": {
+                "kind": "read_file",
+                "value": "tree-browser-README.md",
+                "result": "Read the prior project description: top-level tabs represent tasks, child tabs represent related links, the tree is on the left, and closing a tab closes its descendants."
+              }
+            },
+            {
+              "id": "1.1.2",
+              "label": "Read tree-browser-traces.json to understand the prior implementation evidence map",
+              "evidence": {
+                "kind": "read_file",
+                "value": "tree-browser-traces.json",
+                "result": "Read the previous ATML evidence for the Qt browser, URL handling, child-tab routing, tests, and documentation."
+              }
+            }
+          ]
+        },
+        {
+          "id": "1.2",
+          "label": "Define the Firefox extension package and tab-tree model",
+          "children": [
+            {
+              "id": "1.2.1",
+              "label": "Create the Manifest V3 sidebar, permissions, toolbar action, and extension shortcuts",
+              "evidence": {
+                "kind": "create_file",
+                "value": "manifest.json",
+                "file_changes": [
+                  {
+                    "path": "manifest.json",
+                    "action": "create",
+                    "additions": 57,
+                    "deletions": 0
+                  }
+                ]
+              }
+            },
+            {
+              "id": "1.2.2",
+              "label": "Create the Tree Tabs vector icon used by Firefox chrome and the sidebar brand",
+              "evidence": {
+                "kind": "create_file",
+                "value": "icons/tree-tabs.svg",
+                "file_changes": [
+                  {
+                    "path": "icons/tree-tabs.svg",
+                    "action": "create",
+                    "additions": 9,
+                    "deletions": 0
+                  }
+                ]
+              }
+            },
+            {
+              "id": "1.2.3",
+              "label": "Create index-ordered tree construction and recursive subtree collection from opener relationships",
+              "evidence": {
+                "kind": "create_file",
+                "value": "tree-model.mjs",
+                "file_changes": [
+                  {
+                    "path": "tree-model.mjs",
+                    "action": "create",
+                    "additions": 115,
+                    "deletions": 0
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "1.3",
+          "label": "Connect Firefox tab lifecycle, child creation, and recursive closing",
+          "children": [
+            {
+              "id": "1.3.1",
+              "label": "Create the background event module for the link context menu and toolbar sidebar toggle",
+              "evidence": {
+                "kind": "create_file",
+                "value": "background.js",
+                "file_changes": [
+                  {
+                    "path": "background.js",
+                    "action": "create",
+                    "additions": 249,
+                    "deletions": 0
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "1.4",
+          "label": "Build the vertical left-sidebar experience",
+          "children": [
+            {
+              "id": "1.4.1",
+              "label": "Create the sidebar document with tree, creation controls, empty state, and footer actions",
+              "evidence": {
+                "kind": "create_file",
+                "value": "sidebar.html",
+                "file_changes": [
+                  {
+                    "path": "sidebar.html",
+                    "action": "create",
+                    "additions": 44,
+                    "deletions": 0
+                  }
+                ]
+              }
+            },
+            {
+              "id": "1.4.2",
+              "label": "Create responsive light and dark styling for nested rows, favicons, statuses, controls, and scrolling",
+              "evidence": {
+                "kind": "create_file",
+                "value": "sidebar.css",
+                "file_changes": [
+                  {
+                    "path": "sidebar.css",
+                    "action": "create",
+                    "additions": 416,
+                    "deletions": 0
+                  }
+                ]
+              }
+            },
+            {
+              "id": "1.4.3",
+              "label": "Create sidebar synchronization, activation, collapse persistence, keyboard navigation, and subtree actions",
+              "evidence": {
+                "kind": "create_file",
+                "value": "sidebar.js",
+                "file_changes": [
+                  {
+                    "path": "sidebar.js",
+                    "action": "create",
+                    "additions": 471,
+                    "deletions": 0
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "1.5",
+          "label": "Document local installation and verify the tab-tree model",
+          "children": [
+            {
+              "id": "1.5.1",
+              "label": "Document temporary Firefox installation, daily tree-tab use, shortcuts, and the sidebar limitation",
+              "evidence": {
+                "kind": "create_file",
+                "value": "README.md",
+                "file_changes": [
+                  {
+                    "path": "README.md",
+                    "action": "create",
+                    "additions": 45,
+                    "deletions": 0
+                  }
+                ]
+              }
+            },
+            {
+              "id": "1.5.2",
+              "label": "Cover nesting, invalid opener relationships, cycles, and recursive close membership",
+              "evidence": {
+                "kind": "create_file",
+                "value": "tests/tree-model.test.mjs",
+                "file_changes": [
+                  {
+                    "path": "tests/tree-model.test.mjs",
+                    "action": "create",
+                    "additions": 55,
+                    "deletions": 0
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "1.6",
+          "label": "Verify extension syntax, manifest wiring, tests, and final artifact inventory",
+          "children": [
+            {
+              "id": "1.6.1",
+              "label": "Run the dependency-free tab-tree model tests",
+              "children": [
+                {
+                  "id": "1.6.1.1",
+                  "label": "node --test tests/tree-model.test.mjs",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "node --test tests/tree-model.test.mjs",
+                    "result": "The Node test run completed successfully with no failures."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.6.2",
+              "label": "Parse the extension JavaScript modules",
+              "children": [
+                {
+                  "id": "1.6.2.1",
+                  "label": "node --check background.js && node --check sidebar.js && node --check tree-model.mjs",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "node --check background.js && node --check sidebar.js && node --check tree-model.mjs",
+                    "result": "All three JavaScript files passed Node syntax checking."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.6.3",
+              "label": "Validate required manifest permissions and the sidebar panel entry point",
+              "children": [
+                {
+                  "id": "1.6.3.1",
+                  "label": "node -e \"const fs=require('fs'); const m=JSON.parse(fs.readFileSync('manifest.json','utf8')); const required=['tabs','contextMenus','storage']; for (const p of required) if(!m.permissions.includes(p)) throw new Error('missing '+p); if(m.sidebar_action.default_panel !== 'sidebar.html') throw new Error('sidebar panel'); console.log('manifest permissions and sidebar: ok')\"",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "node -e \"const fs=require('fs'); const m=JSON.parse(fs.readFileSync('manifest.json','utf8')); const required=['tabs','contextMenus','storage']; for (const p of required) if(!m.permissions.includes(p)) throw new Error('missing '+p); if(m.sidebar_action.default_panel !== 'sidebar.html') throw new Error('sidebar panel'); console.log('manifest permissions and sidebar: ok')\"",
+                    "result": "The manifest parsed and included the required permissions and sidebar panel."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.6.4",
+              "label": "Inspect final source inventory and line counts",
+              "children": [
+                {
+                  "id": "1.6.4.1",
+                  "label": "wc -l manifest.json background.js tree-model.mjs sidebar.html sidebar.css sidebar.js README.md tests/tree-model.test.mjs icons/tree-tabs.svg && rg --files -g '!tree-browser-traces.json' | sort",
+                  "evidence": {
+                    "kind": "inspect_diff",
+                    "value": "wc -l manifest.json background.js tree-model.mjs sidebar.html sidebar.css sidebar.js README.md tests/tree-model.test.mjs icons/tree-tabs.svg && rg --files -g '!tree-browser-traces.json' | sort",
+                    "result": "Observed 1461 lines across the nine new extension artifacts and listed the complete source inventory alongside the preserved previous-project files."
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1.7",
+          "label": "Record the new extension implementation evidence map",
+          "children": [
+            {
+              "id": "1.7.1",
+              "label": "Create traces.json with file-specific implementation and verification evidence",
+              "evidence": {
+                "kind": "create_file",
+                "value": "traces.json",
+                "file_changes": [
+                  {
+                    "path": "traces.json",
+                    "action": "create",
+                    "additions": null,
+                    "deletions": 0
+                  }
+                ]
+              }
+            },
+            {
+              "id": "1.7.2",
+              "label": "Validate ATML hierarchy, terminal evidence, and changed-file coverage",
+              "children": [
+                {
+                  "id": "1.7.2.1",
+                  "label": "node --input-type=module -e 'import fs from \"node:fs\"; const trace=JSON.parse(fs.readFileSync(\"traces.json\",\"utf8\")); const ids=new Set(); let leaves=0; function walk(node){ if(ids.has(node.id)) throw new Error(`duplicate id ${node.id}`); ids.add(node.id); const branch=Array.isArray(node.children); if(branch === (\"evidence\" in node)) throw new Error(`invalid branch/leaf ${node.id}`); if(branch){ if(node.children.length===0) throw new Error(`empty branch ${node.id}`); node.children.forEach(walk); } else { if(!node.evidence?.kind || !node.evidence?.value) throw new Error(`missing evidence ${node.id}`); if([\"create_file\",\"modify_file\"].includes(node.evidence.kind)){ const changes=node.evidence.file_changes ?? []; if(changes.length!==1 || changes[0].path!==node.evidence.value) throw new Error(`bad file change ${node.id}`); } leaves += 1; } } trace.tree.forEach(walk); console.log(`ATML shape: valid (${ids.size} nodes, ${leaves} leaves)`);'",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "node --input-type=module -e 'import fs from \"node:fs\"; const trace=JSON.parse(fs.readFileSync(\"traces.json\",\"utf8\")); const ids=new Set(); let leaves=0; function walk(node){ if(ids.has(node.id)) throw new Error(`duplicate id ${node.id}`); ids.add(node.id); const branch=Array.isArray(node.children); if(branch === (\"evidence\" in node)) throw new Error(`invalid branch/leaf ${node.id}`); if(branch){ if(node.children.length===0) throw new Error(`empty branch ${node.id}`); node.children.forEach(walk); } else { if(!node.evidence?.kind || !node.evidence?.value) throw new Error(`missing evidence ${node.id}`); if([\"create_file\",\"modify_file\"].includes(node.evidence.kind)){ const changes=node.evidence.file_changes ?? []; if(changes.length!==1 || changes[0].path!==node.evidence.value) throw new Error(`bad file change ${node.id}`); } leaves += 1; } } trace.tree.forEach(walk); console.log(`ATML shape: valid (${ids.size} nodes, ${leaves} leaves)`);'",
+                    "result": "ATML shape validation passed with 32 unique nodes and 18 evidence leaves."
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1.8",
+          "label": "Record the unavailable live Firefox verification scope",
+          "children": [
+            {
+              "id": "1.8.1",
+              "label": "Create summary.md with static verification results and the missing Firefox runtime note",
+              "evidence": {
+                "kind": "create_file",
+                "value": "summary.md",
+                "file_changes": [
+                  {
+                    "path": "summary.md",
+                    "action": "create",
+                    "additions": 6,
+                    "deletions": 0
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
