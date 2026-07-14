@@ -19,6 +19,7 @@
       <div class="toolbar" aria-label="Tab actions">
         <button id="new-root" class="toolbar-button" type="button" title="New top-level tab (Ctrl+Alt+T)" aria-label="New top-level tab">＋</button>
         <button id="new-child" class="toolbar-button toolbar-button-accent" type="button" title="New child tab (Ctrl+Alt+C)" aria-label="New child tab">↳</button>
+        <button id="new-group" class="toolbar-button" type="button" title="Group top-level trees" aria-label="Group top-level trees">▦</button>
         <button id="refresh" class="toolbar-button" type="button" title="Refresh tabs" aria-label="Refresh tabs">↻</button>
       </div>
     </header>
@@ -46,6 +47,41 @@
         <button id="expand-all" class="footer-button" type="button">Expand all</button>
       </div>
     </footer>
+
+    <dialog id="group-dialog" class="group-dialog" aria-labelledby="group-dialog-title">
+      <form id="group-form">
+        <input id="group-id" type="hidden">
+        <div class="dialog-heading">
+          <div>
+            <h2 id="group-dialog-title">Create a sub-forest</h2>
+            <p>Collect two or more top-level trees under one name.</p>
+          </div>
+          <button id="group-cancel-icon" class="dialog-close" type="button" aria-label="Close">×</button>
+        </div>
+
+        <div class="group-fields">
+          <label>
+            <span>Name</span>
+            <input id="group-name" type="text" maxlength="40" required autocomplete="off">
+          </label>
+          <label class="color-field">
+            <span>Color</span>
+            <input id="group-color" type="color" value="#176b87">
+          </label>
+        </div>
+
+        <fieldset>
+          <legend>Top-level trees</legend>
+          <div id="group-tree-options" class="group-tree-options"></div>
+        </fieldset>
+        <p id="group-error" class="group-error" role="alert" hidden></p>
+
+        <div class="dialog-actions">
+          <button id="group-cancel" class="secondary-button" type="button">Cancel</button>
+          <button class="primary-button dialog-primary" type="submit">Save group</button>
+        </div>
+      </form>
+    </dialog>
 
     <script type="module" src="sidebar.js"></script>
   </body>

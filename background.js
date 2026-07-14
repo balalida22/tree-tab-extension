@@ -1,5 +1,13 @@
-import { collectSubtreeIds, planSubtreeMove } from "./tree-model.mjs";
-import { enrichTabsWithTreeState, setTabTreeParent } from "./tree-state.mjs";
+import {
+  collectSubtreeIds,
+  planSubtreeMove,
+  planSubtreeReorder,
+} from "./tree-model.mjs";
+import {
+  enrichTabsWithTreeState,
+  setTabTreeGroup,
+  setTabTreeParent,
+} from "./tree-state.mjs";
 
 const CHILD_LINK_MENU_ID = "open-link-in-child-tab";
 const snapshots = new Map();
@@ -45,12 +53,22 @@ async function getWindowTabs(windowId) {
   return tabs;
 }
 
-async function moveTree(tabId, parentId) {
+async function moveTree(tabId, destination) {
   const tab = await browser.tabs.get(tabId);
   const tabs = await getWindowTabs(tab.windowId);
-  const plan = planSubtreeMove(tabs, tabId, parentId);
+  const isReorder = Number.isInteger(destination.targetId)
+    && (destination.placement === "before" || destination.placement === "after");
+  const plan = isReorder
+    ? planSubtreeReorder(tabs, tabId, destination.targetId, destination.placement)
+    : planSubtreeMove(tabs, tabId, destination.parentId);
 
-  await setTabTreeParent(tabId, parentId);
+  await setTabTreeParent(tabId, plan.parentId);
+  if (plan.parentId !== null) {
+    await setTabTreeGroup(tabId, null);
+  } else if (isReorder) {
+    const target = tabs.find((item) => item.id === destination.targetId);
+    await setTabTreeGroup(tabId, target?.treeGroupId ?? null);
+  }
   const moved = await browser.tabs.move(plan.tabIds, {
     windowId: tab.windowId,
     index: plan.index,
@@ -161,7 +179,16 @@ browser.runtime.onMessage.addListener((message) => {
 
   if (message.type === "move-tree"
       && (message.parentId === null || Number.isInteger(message.parentId))) {
-    return moveTree(message.tabId, message.parentId);
+    return moveTree(message.tabId, { parentId: message.parentId });
+  }
+
+  if (message.type === "reorder-tree"
+      && Number.isInteger(message.targetId)
+      && (message.placement === "before" || message.placement === "after")) {
+    return moveTree(message.tabId, {
+      targetId: message.targetId,
+      placement: message.placement,
+    });
   }
 
   return undefined;

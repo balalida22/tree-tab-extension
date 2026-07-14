@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildTree, collectSubtreeIds, planSubtreeMove } from "../tree-model.mjs";
+import {
+  buildTree,
+  collectSubtreeIds,
+  planSubtreeMove,
+  planSubtreeReorder,
+} from "../tree-model.mjs";
 
 function tab(id, index, openerTabId, windowId = 1) {
   return { id, index, openerTabId, windowId };
@@ -108,4 +113,48 @@ test("planSubtreeMove keeps pinned subtrees inside the pinned region", () => {
     index: 0,
   });
   assert.throws(() => planSubtreeMove(tabs, 2, 3), /Pinned and unpinned/);
+});
+
+test("planSubtreeReorder places whole sibling subtrees before or after a target", () => {
+  const tabs = [
+    tab(1, 0),
+    tab(2, 1, 1),
+    tab(3, 2, 2),
+    tab(4, 3, 1),
+    tab(5, 4, 4),
+  ];
+
+  assert.deepEqual(planSubtreeReorder(tabs, 4, 2, "before"), {
+    tabIds: [4, 5],
+    parentId: 1,
+    targetId: 2,
+    placement: "before",
+    index: 1,
+  });
+  assert.deepEqual(planSubtreeReorder(tabs, 2, 4, "after"), {
+    tabIds: [2, 3],
+    parentId: 1,
+    targetId: 4,
+    placement: "after",
+    index: 3,
+  });
+});
+
+test("planSubtreeReorder can move a tree between parents and rejects invalid targets", () => {
+  const tabs = [
+    tab(1, 0),
+    tab(2, 1, 1),
+    tab(3, 2),
+    tab(4, 3, 3),
+  ];
+
+  assert.deepEqual(planSubtreeReorder(tabs, 2, 4, "before"), {
+    tabIds: [2],
+    parentId: 3,
+    targetId: 4,
+    placement: "before",
+    index: 2,
+  });
+  assert.throws(() => planSubtreeReorder(tabs, 3, 4, "after"), /relative to itself/);
+  assert.throws(() => planSubtreeReorder(tabs, 2, 4, "inside"), /before or after/);
 });

@@ -10,6 +10,7 @@ Tree Tabs is a Firefox WebExtension that brings the previous `tree-browser` proj
 - Right-click a page link and choose **Open link in child tab** to preserve research hierarchy.
 - Closing a tab from the tree closes that tab and all descendants.
 - Dragging a row moves its whole subtree under another tab or into a new top-level tree.
+- Named, colored sub-forest groups collect multiple top-level trees in the sidebar.
 - Middle-clicking a sidebar tab closes that tab and its descendants.
 - Collapse state is remembered per Firefox window.
 - Toolbar buttons and keyboard commands are available for creating and closing trees.
@@ -32,6 +33,9 @@ The toolbar button supplied by the extension toggles the sidebar. Temporary add-
 - Use the disclosure arrow to collapse a branch.
 - Drag the grip beside a tab onto another row to make it a child subtree.
 - While dragging, drop onto **Make a top-level tree** to detach the subtree from its parent.
+- Drop near the top or bottom edge of another tab to move the whole subtree before or after it; drop in the center to make it a child.
+- Click **▦** to select at least two top-level trees and collect them into a named, colored group.
+- Use a group header’s edit button to change its name, color, or membership; removing a group leaves its trees open.
 - Click a tab title to activate it.
 - Click **×** to close a tab and its descendants.
 - Middle-click a tab title to close it and its descendants immediately.

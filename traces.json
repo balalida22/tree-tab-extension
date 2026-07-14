@@ -1177,6 +1177,437 @@
               ]
             }
           ]
+        },
+        {
+          "id": "1.14",
+          "label": "Add named sub-forest grouping and drag sequence control",
+          "children": [
+            {
+              "id": "1.14.1",
+              "label": "Confirm Firefox window-session persistence for group metadata",
+              "children": [
+                {
+                  "id": "1.14.1.1",
+                  "label": "Inspect the Firefox sessions.setWindowValue API documentation",
+                  "evidence": {
+                    "kind": "inspect_value",
+                    "value": "https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/sessions/setWindowValue",
+                    "result": "Confirmed that an extension can associate JSON-serializable values with a Firefox window, providing the persistence boundary for group definitions."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.14.2",
+              "label": "Persist group definitions and top-level tree membership",
+              "children": [
+                {
+                  "id": "1.14.2.1",
+                  "label": "Add sanitized window groups and per-root membership helpers",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "tree-state.mjs",
+                    "file_changes": [
+                      {
+                        "path": "tree-state.mjs",
+                        "action": "modify",
+                        "additions": 53,
+                        "deletions": 0
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.14.2.2",
+                  "label": "Test group sanitization, window persistence, and root membership",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "tests/tree-state.test.mjs",
+                    "file_changes": [
+                      {
+                        "path": "tests/tree-state.test.mjs",
+                        "action": "modify",
+                        "additions": 41,
+                        "deletions": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.14.3",
+              "label": "Keep drag-and-drop hierarchy and group membership consistent",
+              "children": [
+                {
+                  "id": "1.14.3.1",
+                  "label": "Clear a root group assignment when it becomes another tab's child",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "background.js",
+                    "file_changes": [
+                      {
+                        "path": "background.js",
+                        "action": "modify",
+                        "additions": 8,
+                        "deletions": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.14.4",
+              "label": "Build the group editor and colored sub-forest interface",
+              "children": [
+                {
+                  "id": "1.14.4.1",
+                  "label": "Add the grouping toolbar action and editor dialog markup",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "sidebar.html",
+                    "file_changes": [
+                      {
+                        "path": "sidebar.html",
+                        "action": "modify",
+                        "additions": 36,
+                        "deletions": 0
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.14.4.2",
+                  "label": "Style named groups, color indicators, controls, and the modal editor",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "sidebar.css",
+                    "file_changes": [
+                      {
+                        "path": "sidebar.css",
+                        "action": "modify",
+                        "additions": 252,
+                        "deletions": 0
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.14.4.3",
+                  "label": "Render, create, edit, recolor, and remove grouped sub-forests",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "sidebar.js",
+                    "file_changes": [
+                      {
+                        "path": "sidebar.js",
+                        "action": "modify",
+                        "additions": 232,
+                        "deletions": 5
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.14.5",
+              "label": "Publish and document release 1.1.1",
+              "children": [
+                {
+                  "id": "1.14.5.1",
+                  "label": "Bump the extension version to 1.1.1",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "manifest.json",
+                    "file_changes": [
+                      {
+                        "path": "manifest.json",
+                        "action": "modify",
+                        "additions": 1,
+                        "deletions": 1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.14.5.2",
+                  "label": "Document named and colored group creation and management",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "README.md",
+                    "file_changes": [
+                      {
+                        "path": "README.md",
+                        "action": "modify",
+                        "additions": 3,
+                        "deletions": 0
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.14.6",
+              "label": "Verify grouping behavior, syntax, manifest wiring, and Firefox packaging",
+              "children": [
+                {
+                  "id": "1.14.6.1",
+                  "label": "Run unit tests, syntax checks, and grouping integration assertions",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "node --test tests/*.test.mjs && node --check background.js && node --check sidebar.js && node --check tree-model.mjs && node --check tree-state.mjs && node -e \"const fs=require('fs'); const m=JSON.parse(fs.readFileSync('manifest.json','utf8')); const h=fs.readFileSync('sidebar.html','utf8'); const j=fs.readFileSync('sidebar.js','utf8'); if(m.version!=='1.1.1') throw new Error('version'); for(const token of ['new-group','group-dialog','group-tree-options']) if(!h.includes(token)) throw new Error('missing '+token); for(const token of ['getWindowTreeGroups','setWindowTreeGroups','setTabTreeGroup','createForestGroup']) if(!j.includes(token)) throw new Error('missing '+token); console.log('sub-forest grouping integration: valid')\"",
+                    "result": "Both unit test files passed, all JavaScript modules passed syntax checking, and the version plus grouping integration assertions succeeded."
+                  }
+                },
+                {
+                  "id": "1.14.6.2",
+                  "label": "Lint the Firefox upload source with the requested exclusions",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "npx web-ext@latest lint --source-dir . --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                    "result": "web-ext lint completed with zero errors, zero notices, and zero warnings."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.14.7",
+              "label": "Build and inspect the Firefox 1.1.1 upload package",
+              "children": [
+                {
+                  "id": "1.14.7.1",
+                  "label": "Build the upload archive with the requested exclusions",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "npx web-ext@latest build --source-dir . --overwrite-dest --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                    "result": "Created web-ext-artifacts/tree_tabs-1.1.1.zip."
+                  }
+                },
+                {
+                  "id": "1.14.7.2",
+                  "label": "Record the generated Firefox upload archive",
+                  "evidence": {
+                    "kind": "create_file",
+                    "value": "web-ext-artifacts/tree_tabs-1.1.1.zip",
+                    "file_changes": [
+                      {
+                        "path": "web-ext-artifacts/tree_tabs-1.1.1.zip",
+                        "action": "create",
+                        "additions": null,
+                        "deletions": 0
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.14.7.3",
+                  "label": "Inspect the final diff and packaged version, UI, and implementation tokens",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "git diff --check && git diff --stat && git diff --numstat && unzip -t web-ext-artifacts/tree_tabs-1.1.1.zip && unzip -p web-ext-artifacts/tree_tabs-1.1.1.zip manifest.json | jq '{version, permissions}' && unzip -p web-ext-artifacts/tree_tabs-1.1.1.zip sidebar.html | rg -n 'new-group|group-dialog|group-tree-options' && unzip -p web-ext-artifacts/tree_tabs-1.1.1.zip sidebar.js | rg -n 'createForestGroup|getWindowTreeGroups|setWindowTreeGroups|setTabTreeGroup' && git status --short",
+                    "result": "The diff passed whitespace validation, the ZIP passed integrity checking, version 1.1.1 and expected permissions were present, and the packaged group UI and state helpers were confirmed."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.14.8",
+              "label": "Record release verification and the unavailable live-browser scope",
+              "children": [
+                {
+                  "id": "1.14.8.1",
+                  "label": "Update the verification summary for release 1.1.1",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "summary.md",
+                    "file_changes": [
+                      {
+                        "path": "summary.md",
+                        "action": "modify",
+                        "additions": 2,
+                        "deletions": 2
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.14.8.2",
+                  "label": "Update the trace with grouping, persistence, UI, testing, and packaging evidence",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "traces.json",
+                    "file_changes": [
+                      {
+                        "path": "traces.json",
+                        "action": "modify",
+                        "additions": null,
+                        "deletions": null
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.14.9",
+              "label": "Extend release 1.1.1 with whole-subtree sequence reordering",
+              "children": [
+                {
+                  "id": "1.14.9.1",
+                  "label": "Plan and test before-or-after subtree placement",
+                  "children": [
+                    {
+                      "id": "1.14.9.1.1",
+                      "label": "Calculate sibling placement while preserving complete target and dragged subtrees",
+                      "evidence": {
+                        "kind": "modify_file",
+                        "value": "tree-model.mjs",
+                        "file_changes": [
+                          {
+                            "path": "tree-model.mjs",
+                            "action": "modify",
+                            "additions": 48,
+                            "deletions": 0
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "id": "1.14.9.1.2",
+                      "label": "Test sibling reordering, cross-parent moves, and invalid destinations",
+                      "evidence": {
+                        "kind": "modify_file",
+                        "value": "tests/tree-model.test.mjs",
+                        "file_changes": [
+                          {
+                            "path": "tests/tree-model.test.mjs",
+                            "action": "modify",
+                            "additions": 50,
+                            "deletions": 1
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "1.14.9.2",
+                  "label": "Wire edge-based drag destinations through the sidebar and background",
+                  "children": [
+                    {
+                      "id": "1.14.9.2.1",
+                      "label": "Execute validated before-or-after moves and synchronize parent and group state",
+                      "evidence": {
+                        "kind": "modify_file",
+                        "value": "background.js",
+                        "file_changes": [
+                          {
+                            "path": "background.js",
+                            "action": "modify",
+                            "additions": 26,
+                            "deletions": 6
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "id": "1.14.9.2.2",
+                      "label": "Interpret top, center, and bottom row drops as before, child, and after",
+                      "evidence": {
+                        "kind": "modify_file",
+                        "value": "sidebar.js",
+                        "file_changes": [
+                          {
+                            "path": "sidebar.js",
+                            "action": "modify",
+                            "additions": 49,
+                            "deletions": 14
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "id": "1.14.9.2.3",
+                      "label": "Show insertion lines above or below the destination tab",
+                      "evidence": {
+                        "kind": "modify_file",
+                        "value": "sidebar.css",
+                        "file_changes": [
+                          {
+                            "path": "sidebar.css",
+                            "action": "modify",
+                            "additions": 26,
+                            "deletions": 0
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "id": "1.14.9.2.4",
+                      "label": "Document edge drop reordering alongside center nesting",
+                      "evidence": {
+                        "kind": "modify_file",
+                        "value": "README.md",
+                        "file_changes": [
+                          {
+                            "path": "README.md",
+                            "action": "modify",
+                            "additions": 1,
+                            "deletions": 0
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "1.14.9.3",
+                  "label": "Reverify and rebuild the expanded 1.1.1 release",
+                  "children": [
+                    {
+                      "id": "1.14.9.3.1",
+                      "label": "node --test tests/*.test.mjs && node --check background.js && node --check sidebar.js && node --check tree-model.mjs && node --check tree-state.mjs && git diff --check",
+                      "evidence": {
+                        "kind": "run_command",
+                        "value": "node --test tests/*.test.mjs && node --check background.js && node --check sidebar.js && node --check tree-model.mjs && node --check tree-state.mjs && git diff --check",
+                        "result": "Both test files, including the new reorder cases, passed; all JavaScript syntax checks and diff whitespace validation passed."
+                      }
+                    },
+                    {
+                      "id": "1.14.9.3.2",
+                      "label": "npx web-ext@latest lint --source-dir . --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                      "evidence": {
+                        "kind": "run_command",
+                        "value": "npx web-ext@latest lint --source-dir . --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                        "result": "The final expanded release passed web-ext lint with zero errors, zero notices, and zero warnings."
+                      }
+                    },
+                    {
+                      "id": "1.14.9.3.3",
+                      "label": "npx web-ext@latest build --source-dir . --overwrite-dest --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                      "evidence": {
+                        "kind": "run_command",
+                        "value": "npx web-ext@latest build --source-dir . --overwrite-dest --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                        "result": "Rebuilt web-ext-artifacts/tree_tabs-1.1.1.zip with drag sequence reordering included."
+                      }
+                    },
+                    {
+                      "id": "1.14.9.3.4",
+                      "label": "Inspect the rebuilt ZIP for integrity, version, permissions, and reorder implementation tokens",
+                      "evidence": {
+                        "kind": "run_command",
+                        "value": "unzip -t web-ext-artifacts/tree_tabs-1.1.1.zip && unzip -p web-ext-artifacts/tree_tabs-1.1.1.zip manifest.json | jq '{version, permissions}' && unzip -p web-ext-artifacts/tree_tabs-1.1.1.zip tree-model.mjs | rg -n 'planSubtreeReorder|placement' && unzip -p web-ext-artifacts/tree_tabs-1.1.1.zip sidebar.js | rg -n 'reorder-tree|is-drop-before|is-drop-after' && git diff --check && git status --short",
+                        "result": "The rebuilt ZIP passed integrity checking, retained version 1.1.1 and expected permissions, and contained the reorder planner plus edge-drop UI wiring."
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ]
     },

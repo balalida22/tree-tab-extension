@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 const values = new Map();
+const windowValues = new Map();
 globalThis.browser = {
   sessions: {
     async getTabValue(tabId, key) {
@@ -10,10 +11,26 @@ globalThis.browser = {
     async setTabValue(tabId, key, value) {
       values.set(`${tabId}:${key}`, value);
     },
+    async removeTabValue(tabId, key) {
+      values.delete(`${tabId}:${key}`);
+    },
+    async getWindowValue(windowId, key) {
+      return windowValues.get(`${windowId}:${key}`);
+    },
+    async setWindowValue(windowId, key, value) {
+      windowValues.set(`${windowId}:${key}`, value);
+    },
   },
 };
 
-const { enrichTabsWithTreeState, setTabTreeParent } = await import("../tree-state.mjs");
+const {
+  enrichTabsWithTreeState,
+  getWindowTreeGroups,
+  sanitizeTreeGroups,
+  setTabTreeGroup,
+  setTabTreeParent,
+  setWindowTreeGroups,
+} = await import("../tree-state.mjs");
 
 function tab(id, index, openerTabId) {
   return { id, index, openerTabId, windowId: 1 };
@@ -35,4 +52,27 @@ test("custom parents resolve through stable session node IDs", async () => {
   assert.equal(nested[1].treeParentId, 1);
   assert.equal(nested[0].treeNodeId, initial[0].treeNodeId);
   assert.equal(nested[1].treeNodeId, initial[1].treeNodeId);
+});
+
+test("tree groups persist sanitized metadata and per-root membership", async () => {
+  const groups = await setWindowTreeGroups(1, [
+    { id: "research", name: "  Research  ", color: "#8b5cf6" },
+    { id: "invalid-color", name: "Fallback", color: "purple" },
+    { id: "research", name: "Duplicate", color: "#000000" },
+  ]);
+
+  assert.deepEqual(groups, [
+    { id: "research", name: "Research", color: "#8b5cf6" },
+    { id: "invalid-color", name: "Fallback", color: "#176b87" },
+  ]);
+  assert.deepEqual(await getWindowTreeGroups(1), groups);
+  assert.deepEqual(sanitizeTreeGroups(null), []);
+
+  await setTabTreeGroup(1, "research");
+  let enriched = await enrichTabsWithTreeState([tab(1, 0)]);
+  assert.equal(enriched[0].treeGroupId, "research");
+
+  await setTabTreeGroup(1, null);
+  enriched = await enrichTabsWithTreeState([tab(1, 0)]);
+  assert.equal(Object.hasOwn(enriched[0], "treeGroupId"), false);
 });

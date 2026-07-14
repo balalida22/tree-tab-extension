@@ -169,3 +169,51 @@ export function planSubtreeMove(tabs, rootId, parentId) {
     index: parent.index + 1 - removedBeforeParent,
   };
 }
+
+/**
+ * Plan a whole-subtree move immediately before or after another tree.
+ *
+ * The moved root becomes a sibling of the target. "After" means after the
+ * target's complete subtree, so descendants always remain contiguous.
+ */
+export function planSubtreeReorder(tabs, rootId, targetId, placement) {
+  if (placement !== "before" && placement !== "after") {
+    throw new Error("A reordered subtree must be placed before or after its target.");
+  }
+
+  const byId = new Map(tabs.map((tab) => [tab.id, tab]));
+  const root = byId.get(rootId);
+  const target = byId.get(targetId);
+  if (!root) {
+    throw new Error("The dragged tab is no longer available.");
+  }
+  if (!target) {
+    throw new Error("The destination tab is no longer available.");
+  }
+
+  const tabIds = collectSubtreeIds(tabs, rootId);
+  const subtreeIds = new Set(tabIds);
+  if (subtreeIds.has(targetId)) {
+    throw new Error("A subtree cannot be reordered relative to itself.");
+  }
+
+  const subtreeTabs = tabIds.map((tabId) => byId.get(tabId));
+  if (subtreeTabs.some((tab) => tab.pinned !== root.pinned)
+      || target.pinned !== root.pinned) {
+    throw new Error("Pinned and unpinned tabs cannot be reordered together.");
+  }
+
+  const targetSubtree = collectSubtreeIds(tabs, targetId).map((tabId) => byId.get(tabId));
+  const rawIndex = placement === "before"
+    ? target.index
+    : Math.max(...targetSubtree.map((tab) => tab.index)) + 1;
+  const removedBeforeIndex = subtreeTabs.filter((tab) => tab.index < rawIndex).length;
+
+  return {
+    tabIds,
+    parentId: getParentId(target, byId),
+    targetId,
+    placement,
+    index: rawIndex - removedBeforeIndex,
+  };
+}

@@ -1,5 +1,10 @@
 import { buildTree, collectSubtreeIds } from "./tree-model.mjs";
-import { enrichTabsWithTreeState } from "./tree-state.mjs";
+import {
+  enrichTabsWithTreeState,
+  getWindowTreeGroups,
+  setTabTreeGroup,
+  setWindowTreeGroups,
+} from "./tree-state.mjs";
 
 const COLLAPSED_STORAGE_KEY = "collapsedByWindow";
 
@@ -12,6 +17,7 @@ const state = {
   storageTimer: null,
   messageTimer: null,
   draggedTabId: null,
+  groups: [],
 };
 
 const treeElement = document.getElementById("tree");
@@ -20,6 +26,13 @@ const tabCountElement = document.getElementById("tab-count");
 const windowLabelElement = document.getElementById("window-label");
 const messageElement = document.getElementById("message");
 const rootDropElement = document.getElementById("root-drop-zone");
+const groupDialogElement = document.getElementById("group-dialog");
+const groupFormElement = document.getElementById("group-form");
+const groupIdElement = document.getElementById("group-id");
+const groupNameElement = document.getElementById("group-name");
+const groupColorElement = document.getElementById("group-color");
+const groupTreeOptionsElement = document.getElementById("group-tree-options");
+const groupErrorElement = document.getElementById("group-error");
 
 function tabIdFromRow(row) {
   const tabId = Number(row?.dataset.tabId);
@@ -210,6 +223,65 @@ function allBranchIds(nodes, result = []) {
   return result;
 }
 
+function createForestGroup(group, roots) {
+  const item = document.createElement("li");
+  item.className = "forest-group";
+  item.dataset.groupId = group.id;
+  item.style.setProperty("--group-color", group.color);
+  item.setAttribute("role", "none");
+
+  const header = document.createElement("div");
+  header.className = "forest-group-header";
+
+  const swatch = document.createElement("span");
+  swatch.className = "group-swatch";
+  swatch.setAttribute("aria-hidden", "true");
+
+  const name = document.createElement("span");
+  name.className = "group-name";
+  name.textContent = group.name;
+
+  const count = document.createElement("span");
+  count.className = "group-count";
+  count.textContent = `${roots.length} ${roots.length === 1 ? "tree" : "trees"}`;
+
+  const edit = document.createElement("button");
+  edit.className = "group-header-button";
+  edit.type = "button";
+  edit.dataset.groupAction = "edit";
+  edit.title = `Edit ${group.name}`;
+  edit.setAttribute("aria-label", `Edit ${group.name}`);
+  edit.textContent = "✎";
+
+  const remove = document.createElement("button");
+  remove.className = "group-header-button";
+  remove.type = "button";
+  remove.dataset.groupAction = "remove";
+  remove.title = `Remove ${group.name} without closing its trees`;
+  remove.setAttribute("aria-label", `Remove ${group.name}`);
+  remove.textContent = "×";
+
+  header.append(swatch, name, count, edit, remove);
+  item.append(header);
+
+  if (roots.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "forest-group-empty";
+    empty.textContent = "No top-level trees in this group.";
+    item.append(empty);
+    return item;
+  }
+
+  const trees = document.createElement("ul");
+  trees.className = "forest-group-trees tree-list";
+  trees.setAttribute("role", "group");
+  for (const root of roots) {
+    trees.append(createTabNode(root, 0));
+  }
+  item.append(trees);
+  return item;
+}
+
 function render() {
   const roots = buildTree(state.tabs);
   treeElement.replaceChildren();
@@ -217,7 +289,15 @@ function render() {
   const list = document.createElement("ul");
   list.className = "tree-list";
   list.setAttribute("role", "group");
-  for (const root of roots) {
+
+  const knownGroupIds = new Set(state.groups.map((group) => group.id));
+  for (const group of state.groups) {
+    const groupedRoots = roots.filter((root) => root.tab.treeGroupId === group.id);
+    list.append(createForestGroup(group, groupedRoots));
+  }
+
+  const ungroupedRoots = roots.filter((root) => !knownGroupIds.has(root.tab.treeGroupId));
+  for (const root of ungroupedRoots) {
     list.append(createTabNode(root, 0));
   }
   treeElement.append(list);
@@ -265,13 +345,15 @@ function saveCollapsedState() {
 async function refresh() {
   const serial = ++state.refreshSerial;
   try {
-    const tabs = await enrichTabsWithTreeState(
-      await browser.tabs.query({ windowId: state.windowId }),
-    );
+    const [tabs, groups] = await Promise.all([
+      browser.tabs.query({ windowId: state.windowId }).then(enrichTabsWithTreeState),
+      getWindowTreeGroups(state.windowId),
+    ]);
     if (serial !== state.refreshSerial) {
       return;
     }
     state.tabs = tabs.sort((left, right) => left.index - right.index);
+    state.groups = groups;
     const tabIds = new Set(state.tabs.map((tab) => tab.id));
     state.collapsed = new Set([...state.collapsed].filter((id) => tabIds.has(id)));
     render();
@@ -317,17 +399,145 @@ async function closeSelectedTree(tabId) {
   }
 }
 
-async function moveSelectedTree(tabId, parentId) {
+async function moveSelectedTree(tabId, destination) {
   try {
-    await browser.runtime.sendMessage({ type: "move-tree", tabId, parentId });
-    if (parentId !== null) {
-      state.collapsed.delete(parentId);
+    await browser.runtime.sendMessage({ tabId, ...destination });
+    if (destination.type === "move-tree" && destination.parentId !== null) {
+      state.collapsed.delete(destination.parentId);
     }
     await refresh();
   } catch (error) {
     showMessage(error?.message || "Firefox could not move that subtree.");
     console.warn("Tree Tabs could not move a subtree.", error);
     scheduleRefresh();
+  }
+}
+
+function showGroupError(message) {
+  groupErrorElement.textContent = message;
+  groupErrorElement.hidden = !message;
+}
+
+function openGroupDialog(groupId = null) {
+  const roots = buildTree(state.tabs);
+  const group = state.groups.find((item) => item.id === groupId) ?? null;
+
+  groupIdElement.value = group?.id ?? "";
+  groupNameElement.value = group?.name ?? "";
+  groupColorElement.value = group?.color ?? "#176b87";
+  groupTreeOptionsElement.replaceChildren();
+  showGroupError("");
+
+  if (roots.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "group-tree-empty";
+    empty.textContent = "Create top-level trees before making a group.";
+    groupTreeOptionsElement.append(empty);
+  } else {
+    for (const root of roots) {
+      const option = document.createElement("label");
+      option.className = "group-tree-option";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.name = "group-tree";
+      checkbox.value = String(root.tab.id);
+      checkbox.checked = root.tab.treeGroupId === group?.id;
+
+      const label = document.createElement("span");
+      label.textContent = tabTitle(root.tab);
+      option.append(checkbox, label);
+      groupTreeOptionsElement.append(option);
+    }
+  }
+
+  document.getElementById("group-dialog-title").textContent = group
+    ? "Edit sub-forest"
+    : "Create a sub-forest";
+  groupDialogElement.showModal();
+  groupNameElement.focus();
+}
+
+async function saveGroup(event) {
+  event.preventDefault();
+  const name = groupNameElement.value.trim();
+  const selectedIds = new Set(
+    [...groupTreeOptionsElement.querySelectorAll('input[name="group-tree"]:checked')]
+      .map((checkbox) => Number(checkbox.value))
+      .filter(Number.isInteger),
+  );
+
+  if (!name) {
+    showGroupError("Give this group a name.");
+    return;
+  }
+  if (selectedIds.size < 2) {
+    showGroupError("Select at least two top-level trees.");
+    return;
+  }
+
+  const existingId = groupIdElement.value;
+  const groupId = existingId || crypto.randomUUID();
+  const roots = buildTree(state.tabs);
+  const membershipChanges = [];
+  for (const root of roots) {
+    if (selectedIds.has(root.tab.id)) {
+      membershipChanges.push(setTabTreeGroup(root.tab.id, groupId));
+    } else if (root.tab.treeGroupId === groupId) {
+      membershipChanges.push(setTabTreeGroup(root.tab.id, null));
+    }
+  }
+
+  const group = { id: groupId, name, color: groupColorElement.value };
+  const groups = existingId
+    ? state.groups.map((item) => (item.id === groupId ? group : item))
+    : [...state.groups, group];
+
+  try {
+    await Promise.all(membershipChanges);
+    state.groups = await setWindowTreeGroups(state.windowId, groups);
+    groupDialogElement.close();
+    await refresh();
+  } catch (error) {
+    showGroupError("Firefox could not save this group.");
+    console.warn("Tree Tabs could not save a group.", error);
+  }
+}
+
+async function removeGroup(groupId) {
+  const group = state.groups.find((item) => item.id === groupId);
+  if (!group || !window.confirm(`Remove “${group.name}”? Its trees will stay open.`)) {
+    return;
+  }
+
+  try {
+    const groupedTabs = state.tabs.filter((tab) => tab.treeGroupId === groupId);
+    await Promise.all(groupedTabs.map((tab) => setTabTreeGroup(tab.id, null)));
+    state.groups = await setWindowTreeGroups(
+      state.windowId,
+      state.groups.filter((item) => item.id !== groupId),
+    );
+    render();
+  } catch (error) {
+    showMessage("Firefox could not remove that group.");
+    console.warn("Tree Tabs could not remove a group.", error);
+  }
+}
+
+function handleGroupActionClick(event) {
+  const action = event.target instanceof Element
+    ? event.target.closest("[data-group-action]")
+    : null;
+  const groupId = action?.closest(".forest-group")?.dataset.groupId;
+  if (!action || !groupId) {
+    return;
+  }
+
+  event.stopPropagation();
+  if (action.dataset.groupAction === "edit") {
+    openGroupDialog(groupId);
+  } else if (action.dataset.groupAction === "remove") {
+    void removeGroup(groupId);
   }
 }
 
@@ -389,8 +599,16 @@ function draggedSubtreeIds() {
 }
 
 function clearDragPresentation() {
-  treeElement.querySelectorAll(".is-dragging, .is-drop-target").forEach((element) => {
-    element.classList.remove("is-dragging", "is-drop-target");
+  treeElement.querySelectorAll(
+    ".is-dragging, .is-drop-target, .is-drop-before, .is-drop-after",
+  ).forEach((element) => {
+    element.classList.remove(
+      "is-dragging",
+      "is-drop-target",
+      "is-drop-before",
+      "is-drop-after",
+    );
+    delete element.dataset.dropPlacement;
   });
   rootDropElement.classList.remove("is-drop-target");
   rootDropElement.hidden = true;
@@ -434,23 +652,50 @@ function handleTreeDragOver(event) {
   if (event.dataTransfer) {
     event.dataTransfer.dropEffect = "move";
   }
-  treeElement.querySelectorAll(".is-drop-target").forEach((element) => {
-    element.classList.remove("is-drop-target");
-  });
-  row.classList.add("is-drop-target");
+  treeElement.querySelectorAll(".is-drop-target, .is-drop-before, .is-drop-after")
+    .forEach((element) => {
+      element.classList.remove("is-drop-target", "is-drop-before", "is-drop-after");
+      delete element.dataset.dropPlacement;
+    });
+
+  const bounds = row.getBoundingClientRect();
+  const offset = event.clientY - bounds.top;
+  const edgeSize = Math.min(10, bounds.height * 0.3);
+  const placement = offset < edgeSize
+    ? "before"
+    : offset > bounds.height - edgeSize
+      ? "after"
+      : "child";
+  row.dataset.dropPlacement = placement;
+  if (placement === "before") {
+    row.classList.add("is-drop-before");
+  } else if (placement === "after") {
+    row.classList.add("is-drop-after");
+  } else {
+    row.classList.add("is-drop-target");
+  }
 }
 
 function handleTreeDrop(event) {
   const row = rowFromTarget(event.target);
-  const parentId = tabIdFromRow(row);
+  const targetId = tabIdFromRow(row);
   const tabId = state.draggedTabId;
-  if (tabId === null || parentId === null || draggedSubtreeIds().has(parentId)) {
+  if (tabId === null || targetId === null || draggedSubtreeIds().has(targetId)) {
     return;
   }
 
   event.preventDefault();
+  const placement = row.dataset.dropPlacement ?? "child";
   finishDrag();
-  void moveSelectedTree(tabId, parentId);
+  if (placement === "before" || placement === "after") {
+    void moveSelectedTree(tabId, {
+      type: "reorder-tree",
+      targetId,
+      placement,
+    });
+  } else {
+    void moveSelectedTree(tabId, { type: "move-tree", parentId: targetId });
+  }
 }
 
 function handleRootDragOver(event) {
@@ -471,7 +716,7 @@ function handleRootDrop(event) {
   }
   event.preventDefault();
   finishDrag();
-  void moveSelectedTree(tabId, null);
+  void moveSelectedTree(tabId, { type: "move-tree", parentId: null });
 }
 
 function handleTreeAuxClick(event) {
@@ -503,6 +748,9 @@ function moveFocus(delta) {
 }
 
 function handleKeyboard(event) {
+  if (groupDialogElement.open) {
+    return;
+  }
   if (event.key === "ArrowDown") {
     event.preventDefault();
     moveFocus(1);
@@ -568,6 +816,10 @@ document.getElementById("new-child").addEventListener("click", () => {
   void createTab(selectedTab());
 });
 
+document.getElementById("new-group").addEventListener("click", () => {
+  openGroupDialog();
+});
+
 document.getElementById("empty-new-root").addEventListener("click", () => {
   void createTab();
 });
@@ -593,6 +845,7 @@ document.getElementById("expand-all").addEventListener("click", () => {
 });
 
 treeElement.addEventListener("click", (event) => {
+  handleGroupActionClick(event);
   void handleTreeClick(event);
 });
 treeElement.addEventListener("auxclick", handleTreeAuxClick);
@@ -605,6 +858,15 @@ rootDropElement.addEventListener("dragleave", () => {
   rootDropElement.classList.remove("is-drop-target");
 });
 rootDropElement.addEventListener("drop", handleRootDrop);
+groupFormElement.addEventListener("submit", (event) => {
+  void saveGroup(event);
+});
+document.getElementById("group-cancel").addEventListener("click", () => {
+  groupDialogElement.close();
+});
+document.getElementById("group-cancel-icon").addEventListener("click", () => {
+  groupDialogElement.close();
+});
 document.addEventListener("keydown", handleKeyboard);
 
 async function initialize() {
