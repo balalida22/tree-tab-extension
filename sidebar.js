@@ -23,7 +23,6 @@ const state = {
 const treeElement = document.getElementById("tree");
 const emptyStateElement = document.getElementById("empty-state");
 const tabCountElement = document.getElementById("tab-count");
-const windowLabelElement = document.getElementById("window-label");
 const messageElement = document.getElementById("message");
 const rootDropElement = document.getElementById("root-drop-zone");
 const groupDialogElement = document.getElementById("group-dialog");
@@ -33,6 +32,7 @@ const groupNameElement = document.getElementById("group-name");
 const groupColorElement = document.getElementById("group-color");
 const groupTreeOptionsElement = document.getElementById("group-tree-options");
 const groupErrorElement = document.getElementById("group-error");
+const groupDescriptionElement = document.getElementById("group-dialog-description");
 
 function tabIdFromRow(row) {
   const tabId = Number(row?.dataset.tabId);
@@ -454,6 +454,9 @@ function openGroupDialog(groupId = null) {
   document.getElementById("group-dialog-title").textContent = group
     ? "Edit sub-forest"
     : "Create a sub-forest";
+  groupDescriptionElement.textContent = group
+    ? "Choose any number of top-level trees; this group may be empty."
+    : "Collect two or more top-level trees under one name.";
   groupDialogElement.showModal();
   groupNameElement.focus();
 }
@@ -471,7 +474,7 @@ async function saveGroup(event) {
     showGroupError("Give this group a name.");
     return;
   }
-  if (selectedIds.size < 2) {
+  if (!groupIdElement.value && selectedIds.size < 2) {
     showGroupError("Select at least two top-level trees.");
     return;
   }
@@ -506,12 +509,13 @@ async function saveGroup(event) {
 
 async function removeGroup(groupId) {
   const group = state.groups.find((item) => item.id === groupId);
-  if (!group || !window.confirm(`Remove “${group.name}”? Its trees will stay open.`)) {
+  const groupedTabs = state.tabs.filter((tab) => tab.treeGroupId === groupId);
+  if (!group || (groupedTabs.length > 0
+      && !window.confirm(`Remove “${group.name}”? Its trees will stay open.`))) {
     return;
   }
 
   try {
-    const groupedTabs = state.tabs.filter((tab) => tab.treeGroupId === groupId);
     await Promise.all(groupedTabs.map((tab) => setTabTreeGroup(tab.id, null)));
     state.groups = await setWindowTreeGroups(
       state.windowId,
@@ -873,7 +877,6 @@ async function initialize() {
   try {
     const currentWindow = await browser.windows.getCurrent();
     state.windowId = currentWindow.id;
-    windowLabelElement.textContent = currentWindow.title || "Current window";
     await loadCollapsedState();
     attachBrowserListeners();
     await refresh();

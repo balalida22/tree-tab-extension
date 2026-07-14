@@ -116,11 +116,6 @@ h1 {
   white-space: nowrap;
 }
 
-.brand p {
-  color: var(--muted);
-  font-size: 11px;
-}
-
 .toolbar {
   display: flex;
   flex: 0 0 auto;

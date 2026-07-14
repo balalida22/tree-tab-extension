@@ -1608,6 +1608,316 @@
               ]
             }
           ]
+        },
+        {
+          "id": "1.15",
+          "label": "Allow empty forests and simplify the 1.1.2 sidebar header",
+          "children": [
+            {
+              "id": "1.15.1",
+              "label": "Detach moved trees from groups while preserving empty forests",
+              "children": [
+                {
+                  "id": "1.15.1.1",
+                  "label": "Resolve group membership consistently for nesting, detaching, and root reordering",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "tree-state.mjs",
+                    "file_changes": [
+                      {
+                        "path": "tree-state.mjs",
+                        "action": "modify",
+                        "additions": 8,
+                        "deletions": 0
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.15.1.2",
+                  "label": "Clear group membership when a subtree is dropped into the top-level area",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "background.js",
+                    "file_changes": [
+                      {
+                        "path": "background.js",
+                        "action": "modify",
+                        "additions": 5,
+                        "deletions": 6
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.15.1.3",
+                  "label": "Cover empty-group persistence and group results for every move mode",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "tests/tree-state.test.mjs",
+                    "file_changes": [
+                      {
+                        "path": "tests/tree-state.test.mjs",
+                        "action": "modify",
+                        "additions": 14,
+                        "deletions": 0
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.15.2",
+              "label": "Support empty group editing and confirmation-free empty removal",
+              "children": [
+                {
+                  "id": "1.15.2.1",
+                  "label": "Permit and explain zero-tree group edits while confirming removal only for populated groups",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "sidebar.js",
+                    "file_changes": [
+                      {
+                        "path": "sidebar.js",
+                        "action": "modify",
+                        "additions": 8,
+                        "deletions": 3
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.15.2.2",
+                  "label": "Explain group detachment and identify the group editor description",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "sidebar.html",
+                    "file_changes": [
+                      {
+                        "path": "sidebar.html",
+                        "action": "modify",
+                        "additions": 2,
+                        "deletions": 2
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.15.3",
+              "label": "Remove the active Firefox window subtitle from Tree Tabs",
+              "children": [
+                {
+                  "id": "1.15.3.1",
+                  "label": "Keep only the Tree Tabs name in the sidebar brand",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "sidebar.html",
+                    "file_changes": [
+                      {
+                        "path": "sidebar.html",
+                        "action": "modify",
+                        "additions": 1,
+                        "deletions": 4
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.15.3.2",
+                  "label": "Stop reading and displaying the Firefox window title",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "sidebar.js",
+                    "file_changes": [
+                      {
+                        "path": "sidebar.js",
+                        "action": "modify",
+                        "additions": 0,
+                        "deletions": 2
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.15.3.3",
+                  "label": "Remove the obsolete subtitle style",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "sidebar.css",
+                    "file_changes": [
+                      {
+                        "path": "sidebar.css",
+                        "action": "modify",
+                        "additions": 0,
+                        "deletions": 5
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.15.4",
+              "label": "Publish and document release 1.1.2",
+              "children": [
+                {
+                  "id": "1.15.4.1",
+                  "label": "Bump the Firefox extension version to 1.1.2",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "manifest.json",
+                    "file_changes": [
+                      {
+                        "path": "manifest.json",
+                        "action": "modify",
+                        "additions": 1,
+                        "deletions": 1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.15.4.2",
+                  "label": "Document group detachment, empty forests, and confirmation-free empty removal",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "README.md",
+                    "file_changes": [
+                      {
+                        "path": "README.md",
+                        "action": "modify",
+                        "additions": 2,
+                        "deletions": 2
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.15.5",
+              "label": "Verify and package the completed 1.1.2 release",
+              "children": [
+                {
+                  "id": "1.15.5.1",
+                  "label": "Run tests, syntax checks, release assertions, and diff validation",
+                  "children": [
+                    {
+                      "id": "1.15.5.1.1",
+                      "label": "node --test tests/*.test.mjs && node --check background.js && node --check sidebar.js && node --check tree-model.mjs && node --check tree-state.mjs && node -e \"const fs=require('fs'); const manifest=JSON.parse(fs.readFileSync('manifest.json','utf8')); const html=fs.readFileSync('sidebar.html','utf8'); const sidebar=fs.readFileSync('sidebar.js','utf8'); if(manifest.version!=='1.1.2') throw new Error('version'); if(html.includes('window-label')) throw new Error('window subtitle remains'); if(!sidebar.includes('groupedTabs.length > 0')) throw new Error('empty removal guard missing'); if(!sidebar.includes('this group may be empty')) throw new Error('empty group copy missing'); console.log('1.1.2 integration: valid')\" && git diff --check",
+                      "evidence": {
+                        "kind": "run_command",
+                        "value": "node --test tests/*.test.mjs && node --check background.js && node --check sidebar.js && node --check tree-model.mjs && node --check tree-state.mjs && node -e \"const fs=require('fs'); const manifest=JSON.parse(fs.readFileSync('manifest.json','utf8')); const html=fs.readFileSync('sidebar.html','utf8'); const sidebar=fs.readFileSync('sidebar.js','utf8'); if(manifest.version!=='1.1.2') throw new Error('version'); if(html.includes('window-label')) throw new Error('window subtitle remains'); if(!sidebar.includes('groupedTabs.length > 0')) throw new Error('empty removal guard missing'); if(!sidebar.includes('this group may be empty')) throw new Error('empty group copy missing'); console.log('1.1.2 integration: valid')\" && git diff --check",
+                        "result": "Both test files passed, all JavaScript modules passed syntax checks, the version/header/empty-removal assertions passed, and the diff had no whitespace errors."
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "1.15.5.2",
+                  "label": "Lint the Firefox upload source",
+                  "children": [
+                    {
+                      "id": "1.15.5.2.1",
+                      "label": "npx web-ext@latest lint --source-dir . --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                      "evidence": {
+                        "kind": "run_command",
+                        "value": "npx web-ext@latest lint --source-dir . --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                        "result": "web-ext lint completed with zero errors, zero notices, and zero warnings."
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "1.15.5.3",
+                  "label": "Build the Firefox 1.1.2 upload archive",
+                  "children": [
+                    {
+                      "id": "1.15.5.3.1",
+                      "label": "npx web-ext@latest build --source-dir . --overwrite-dest --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                      "evidence": {
+                        "kind": "run_command",
+                        "value": "npx web-ext@latest build --source-dir . --overwrite-dest --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                        "result": "Created web-ext-artifacts/tree_tabs-1.1.2.zip."
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "1.15.5.4",
+                  "label": "Record the generated Firefox upload archive",
+                  "evidence": {
+                    "kind": "create_file",
+                    "value": "web-ext-artifacts/tree_tabs-1.1.2.zip",
+                    "file_changes": [
+                      {
+                        "path": "web-ext-artifacts/tree_tabs-1.1.2.zip",
+                        "action": "create",
+                        "additions": null,
+                        "deletions": 0
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.15.5.5",
+                  "label": "Inspect final package integrity and 1.1.2 feature contents",
+                  "children": [
+                    {
+                      "id": "1.15.5.5.1",
+                      "label": "unzip -t web-ext-artifacts/tree_tabs-1.1.2.zip && unzip -p web-ext-artifacts/tree_tabs-1.1.2.zip manifest.json | jq '{version, permissions}' && unzip -p web-ext-artifacts/tree_tabs-1.1.2.zip sidebar.html | rg -n 'Tree Tabs|window-label|detach the subtree from its parent or group' && unzip -p web-ext-artifacts/tree_tabs-1.1.2.zip sidebar.js | rg -n 'selectedIds.size|groupedTabs.length|windowLabelElement' && unzip -p web-ext-artifacts/tree_tabs-1.1.2.zip tree-state.mjs | rg -n 'groupIdForTreeMove' && git diff --check && git diff --numstat && git status --short",
+                      "evidence": {
+                        "kind": "run_command",
+                        "value": "unzip -t web-ext-artifacts/tree_tabs-1.1.2.zip && unzip -p web-ext-artifacts/tree_tabs-1.1.2.zip manifest.json | jq '{version, permissions}' && unzip -p web-ext-artifacts/tree_tabs-1.1.2.zip sidebar.html | rg -n 'Tree Tabs|window-label|detach the subtree from its parent or group' && unzip -p web-ext-artifacts/tree_tabs-1.1.2.zip sidebar.js | rg -n 'selectedIds.size|groupedTabs.length|windowLabelElement' && unzip -p web-ext-artifacts/tree_tabs-1.1.2.zip tree-state.mjs | rg -n 'groupIdForTreeMove' && git diff --check && git diff --numstat && git status --short",
+                        "result": "The ZIP passed integrity checking, contained version 1.1.2 with expected permissions, and included the simplified header, detachment copy, empty-removal guard, and group-move helper."
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "1.15.6",
+              "label": "Record verification scope and the 1.1.2 evidence map",
+              "children": [
+                {
+                  "id": "1.15.6.1",
+                  "label": "Update the verification summary and unavailable live-browser scope",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "summary.md",
+                    "file_changes": [
+                      {
+                        "path": "summary.md",
+                        "action": "modify",
+                        "additions": 2,
+                        "deletions": 2
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.15.6.2",
+                  "label": "Update the trace with empty-group, header, testing, and packaging evidence",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "traces.json",
+                    "file_changes": [
+                      {
+                        "path": "traces.json",
+                        "action": "modify",
+                        "additions": null,
+                        "deletions": null
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },

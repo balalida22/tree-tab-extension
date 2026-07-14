@@ -64,6 +64,14 @@ export async function setTabTreeGroup(tabId, groupId) {
   await browser.sessions.setTabValue(tabId, GROUP_ID_KEY, groupId);
 }
 
+/** Resolve group membership after nesting, detaching, or sibling reordering. */
+export function groupIdForTreeMove(tabs, parentId, targetId = null) {
+  if (parentId !== null || !Number.isInteger(targetId)) {
+    return null;
+  }
+  return tabs.find((tab) => tab.id === targetId)?.treeGroupId ?? null;
+}
+
 export function sanitizeTreeGroups(groups) {
   if (!Array.isArray(groups)) {
     return [];

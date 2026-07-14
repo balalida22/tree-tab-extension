@@ -32,10 +32,10 @@ The toolbar button supplied by the extension toggles the sidebar. Temporary add-
 - Click **↳** for a child of the selected or active tab.
 - Use the disclosure arrow to collapse a branch.
 - Drag the grip beside a tab onto another row to make it a child subtree.
-- While dragging, drop onto **Make a top-level tree** to detach the subtree from its parent.
+- While dragging, drop onto **Make a top-level tree** to detach the subtree from its parent or group.
 - Drop near the top or bottom edge of another tab to move the whole subtree before or after it; drop in the center to make it a child.
 - Click **▦** to select at least two top-level trees and collect them into a named, colored group.
-- Use a group header’s edit button to change its name, color, or membership; removing a group leaves its trees open.
+- Use a group header’s edit button to change its name, color, or membership. Existing groups may be empty, and removing an empty group needs no confirmation.
 - Click a tab title to activate it.
 - Click **×** to close a tab and its descendants.
 - Middle-click a tab title to close it and its descendants immediately.

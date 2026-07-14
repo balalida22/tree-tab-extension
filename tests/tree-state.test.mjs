@@ -26,6 +26,7 @@ globalThis.browser = {
 const {
   enrichTabsWithTreeState,
   getWindowTreeGroups,
+  groupIdForTreeMove,
   sanitizeTreeGroups,
   setTabTreeGroup,
   setTabTreeParent,
@@ -75,4 +76,17 @@ test("tree groups persist sanitized metadata and per-root membership", async () 
   await setTabTreeGroup(1, null);
   enriched = await enrichTabsWithTreeState([tab(1, 0)]);
   assert.equal(Object.hasOwn(enriched[0], "treeGroupId"), false);
+  assert.deepEqual(await getWindowTreeGroups(1), groups, "empty groups remain persisted");
+});
+
+test("tree moves detach groups or adopt a reordered root's group", () => {
+  const tabs = [
+    { ...tab(1, 0), treeGroupId: "research" },
+    { ...tab(2, 1), treeGroupId: "writing" },
+  ];
+
+  assert.equal(groupIdForTreeMove(tabs, null), null, "top-level drop leaves its group");
+  assert.equal(groupIdForTreeMove(tabs, 1, 2), null, "nesting leaves its group");
+  assert.equal(groupIdForTreeMove(tabs, null, 2), "writing", "root reorder adopts group");
+  assert.equal(groupIdForTreeMove(tabs, null, 999), null, "unknown roots are ungrouped");
 });

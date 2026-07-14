@@ -5,6 +5,7 @@ import {
 } from "./tree-model.mjs";
 import {
   enrichTabsWithTreeState,
+  groupIdForTreeMove,
   setTabTreeGroup,
   setTabTreeParent,
 } from "./tree-state.mjs";
@@ -63,12 +64,10 @@ async function moveTree(tabId, destination) {
     : planSubtreeMove(tabs, tabId, destination.parentId);
 
   await setTabTreeParent(tabId, plan.parentId);
-  if (plan.parentId !== null) {
-    await setTabTreeGroup(tabId, null);
-  } else if (isReorder) {
-    const target = tabs.find((item) => item.id === destination.targetId);
-    await setTabTreeGroup(tabId, target?.treeGroupId ?? null);
-  }
+  await setTabTreeGroup(
+    tabId,
+    groupIdForTreeMove(tabs, plan.parentId, destination.targetId),
+  );
   const moved = await browser.tabs.move(plan.tabIds, {
     windowId: tab.windowId,
     index: plan.index,
