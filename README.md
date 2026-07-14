@@ -32,7 +32,7 @@ The toolbar button supplied by the extension toggles the sidebar. Temporary add-
 - Click **×** to close a tab and its descendants.
 - Ctrl-click or middle-click links in Firefox when you want Firefox to assign the current page as their opener; the sidebar will show those tabs as children when Firefox exposes that relationship.
 
-The default extension shortcuts are `Ctrl+Alt+T` for a top-level tab, `Ctrl+Alt+Shift+T` for a child tab, and `Ctrl+Alt+W` to close the active tree. Firefox lets users change extension shortcuts at `about:addons` → gear menu → **Manage Extension Shortcuts**.
+The default extension shortcuts are `Ctrl+Alt+T` for a top-level tab, `Ctrl+Alt+C` for a child tab, and `Ctrl+Alt+W` to close the active tree. Firefox lets users change extension shortcuts at `about:addons` → gear menu → **Manage Extension Shortcuts**.
 
 ## Checks
 

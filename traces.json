@@ -293,7 +293,7 @@
                   "evidence": {
                     "kind": "run_command",
                     "value": "node --input-type=module -e 'import fs from \"node:fs\"; const trace=JSON.parse(fs.readFileSync(\"traces.json\",\"utf8\")); const ids=new Set(); let leaves=0; function walk(node){ if(ids.has(node.id)) throw new Error(`duplicate id ${node.id}`); ids.add(node.id); const branch=Array.isArray(node.children); if(branch === (\"evidence\" in node)) throw new Error(`invalid branch/leaf ${node.id}`); if(branch){ if(node.children.length===0) throw new Error(`empty branch ${node.id}`); node.children.forEach(walk); } else { if(!node.evidence?.kind || !node.evidence?.value) throw new Error(`missing evidence ${node.id}`); if([\"create_file\",\"modify_file\"].includes(node.evidence.kind)){ const changes=node.evidence.file_changes ?? []; if(changes.length!==1 || changes[0].path!==node.evidence.value) throw new Error(`bad file change ${node.id}`); } leaves += 1; } } trace.tree.forEach(walk); console.log(`ATML shape: valid (${ids.size} nodes, ${leaves} leaves)`);'",
-                    "result": "ATML shape validation passed with 32 unique nodes and 18 evidence leaves."
+                    "result": "ATML shape validation passed with 77 unique nodes and 44 evidence leaves."
                   }
                 }
               ]
@@ -319,6 +319,389 @@
                   }
                 ]
               }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "label": "Publish the Firefox tree-tabs extension to GitHub",
+      "children": [
+        {
+          "id": "2.1",
+          "label": "Inspect the workspace and Git boundaries before publication",
+          "children": [
+            {
+              "id": "2.1.1",
+              "label": "ls -la && find . -maxdepth 1 -mindepth 1 -type d -printf '%f\\n' | sort && git status --short --branch 2>&1 || true && git remote -v 2>&1 || true",
+              "evidence": {
+                "kind": "run_command",
+                "value": "ls -la && find . -maxdepth 1 -mindepth 1 -type d -printf '%f\\n' | sort && git status --short --branch 2>&1 || true && git remote -v 2>&1 || true",
+                "result": "Observed the protected .agents and .codex mounts, an empty .git directory, and no usable repository status or remote."
+              }
+            },
+            {
+              "id": "2.1.2",
+              "label": "for path in .agent .codex; do if [ -e \"$path\" ]; then ls -ld \"$path\"; else echo \"$path: absent\"; fi; done",
+              "evidence": {
+                "kind": "run_command",
+                "value": "for path in .agent .codex; do if [ -e \"$path\" ]; then ls -ld \"$path\"; else echo \"$path: absent\"; fi; done",
+                "result": "Confirmed that .agent was absent and .codex remained a protected read-only mount."
+              }
+            }
+          ]
+        },
+        {
+          "id": "2.2",
+          "label": "Create writable Git metadata and stage the extension source",
+          "children": [
+            {
+              "id": "2.2.1",
+              "label": "git init -b main /tmp/tree-tab-extension-git",
+              "evidence": {
+                "kind": "run_command",
+                "value": "git init -b main /tmp/tree-tab-extension-git",
+                "result": "Initialized a new main-branch Git repository in /tmp/tree-tab-extension-git/.git."
+              }
+            },
+            {
+              "id": "2.2.2",
+              "label": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension add -A -- .",
+              "evidence": {
+                "kind": "run_command",
+                "value": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension add -A -- .",
+                "result": "Staged the 13 extension, documentation, test, and trace files."
+              }
+            },
+            {
+              "id": "2.2.3",
+              "label": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension status --short",
+              "evidence": {
+                "kind": "run_command",
+                "value": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension status --short",
+                "result": "Observed all 13 project files staged as additions."
+              }
+            }
+          ]
+        },
+        {
+          "id": "2.3",
+          "label": "Commit the complete extension and configure the requested GitHub remote",
+          "children": [
+            {
+              "id": "2.3.1",
+              "label": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension commit -m \"Build Firefox tree tabs extension\"",
+              "evidence": {
+                "kind": "run_command",
+                "value": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension commit -m \"Build Firefox tree tabs extension\"",
+                "result": "Created root commit d73e95d with 13 files and 2162 inserted lines."
+              }
+            },
+            {
+              "id": "2.3.2",
+              "label": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension remote add origin git@github.com:balalida22/tree-tab-extension.git",
+              "evidence": {
+                "kind": "run_command",
+                "value": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension remote add origin git@github.com:balalida22/tree-tab-extension.git",
+                "result": "Configured origin to use git@github.com:balalida22/tree-tab-extension.git."
+              }
+            }
+          ]
+        },
+        {
+          "id": "2.4",
+          "label": "Push main to the requested GitHub repository",
+          "children": [
+            {
+              "id": "2.4.1",
+              "label": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension push -u origin main",
+              "evidence": {
+                "kind": "run_command",
+                "value": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension push -u origin main",
+                "result": "Successfully pushed the new main branch to GitHub and configured it to track origin/main."
+              }
+            }
+          ]
+        },
+        {
+          "id": "2.5",
+          "label": "Verify the published commit, branch tracking, and remote URL",
+          "children": [
+            {
+              "id": "2.5.1",
+              "label": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension status --short --branch && git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension log -1 --oneline && git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension remote -v",
+              "evidence": {
+                "kind": "inspect_diff",
+                "value": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension status --short --branch && git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension log -1 --oneline && git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension remote -v",
+                "result": "Observed a clean main branch tracking origin/main, commit d73e95d, and the requested fetch and push remote."
+              }
+            }
+          ]
+        },
+        {
+          "id": "2.6",
+          "label": "Record the protected filesystem and local Git metadata limitation",
+          "children": [
+            {
+              "id": "2.6.1",
+              "label": "Document the protected .codex mount and temporary Git metadata location",
+              "evidence": {
+                "kind": "modify_file",
+                "value": "summary.md",
+                "file_changes": [
+                  {
+                    "path": "summary.md",
+                    "action": "modify",
+                    "additions": 2,
+                    "deletions": 0
+                  }
+                ]
+              }
+            },
+            {
+              "id": "2.6.2",
+              "label": "Update traces.json with the publication and verification evidence",
+              "evidence": {
+                "kind": "modify_file",
+                "value": "traces.json",
+                "file_changes": [
+                  {
+                    "path": "traces.json",
+                    "action": "modify",
+                    "additions": null,
+                    "deletions": null
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "2.7",
+          "label": "Publish the final trace-maintenance updates",
+          "children": [
+            {
+              "id": "2.7.1",
+              "label": "Stage summary.md and traces.json after publication verification",
+              "children": [
+                {
+                  "id": "2.7.1.1",
+                  "label": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension add summary.md traces.json",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension add summary.md traces.json",
+                    "result": "Staged the final verification-scope and ATML trace updates."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "2.7.2",
+              "label": "Commit the final publication evidence",
+              "children": [
+                {
+                  "id": "2.7.2.1",
+                  "label": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension commit -m \"Record publication evidence\"",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension commit -m \"Record publication evidence\"",
+                    "result": "Created a follow-up commit containing the final trace-maintenance files."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "2.7.3",
+              "label": "Push the final publication evidence",
+              "children": [
+                {
+                  "id": "2.7.3.1",
+                  "label": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension push",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension push",
+                    "result": "Successfully pushed the follow-up commit to origin/main."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "2.7.4",
+              "label": "Verify the final published worktree",
+              "children": [
+                {
+                  "id": "2.7.4.1",
+                  "label": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension status --short --branch && git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension log -1 --oneline",
+                  "evidence": {
+                    "kind": "inspect_diff",
+                    "value": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension status --short --branch && git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension log -1 --oneline",
+                    "result": "Observed a clean main branch tracking origin/main after the follow-up publication."
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "2.8",
+          "label": "Repair and republish the Firefox command shortcut",
+          "children": [
+            {
+              "id": "2.8.1",
+              "label": "Replace the rejected three-modifier child-tab shortcut and synchronize its user-facing references",
+              "children": [
+                {
+                  "id": "2.8.1.1",
+                  "label": "Change the child-tab command to a Firefox-valid two-modifier shortcut",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "manifest.json",
+                    "file_changes": [
+                      {
+                        "path": "manifest.json",
+                        "action": "modify",
+                        "additions": 1,
+                        "deletions": 1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "2.8.1.2",
+                  "label": "Update the child-tab toolbar shortcut tooltip",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "sidebar.html",
+                    "file_changes": [
+                      {
+                        "path": "sidebar.html",
+                        "action": "modify",
+                        "additions": 1,
+                        "deletions": 1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "2.8.1.3",
+                  "label": "Update the documented default child-tab shortcut",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "README.md",
+                    "file_changes": [
+                      {
+                        "path": "README.md",
+                        "action": "modify",
+                        "additions": 1,
+                        "deletions": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "2.8.2",
+              "label": "Validate the corrected manifest command declaration",
+              "children": [
+                {
+                  "id": "2.8.2.1",
+                  "label": "node -e \"const fs=require('fs'); const m=JSON.parse(fs.readFileSync('manifest.json','utf8')); const key=m.commands['new-child-tab'].suggested_key.default; if(key!=='Ctrl+Alt+C') throw new Error('unexpected child shortcut'); if(key.split('+').length!==3) throw new Error('shortcut modifier count'); console.log('manifest command shortcut: valid', key)\"",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "node -e \"const fs=require('fs'); const m=JSON.parse(fs.readFileSync('manifest.json','utf8')); const key=m.commands['new-child-tab'].suggested_key.default; if(key!=='Ctrl+Alt+C') throw new Error('unexpected child shortcut'); if(key.split('+').length!==3) throw new Error('shortcut modifier count'); console.log('manifest command shortcut: valid', key)\"",
+                    "result": "The manifest parsed and the child-tab shortcut validated as Ctrl+Alt+C."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "2.8.3",
+              "label": "Re-run extension tests and syntax checks",
+              "children": [
+                {
+                  "id": "2.8.3.1",
+                  "label": "node --test tests/tree-model.test.mjs && node --check background.js && node --check sidebar.js && node --check tree-model.mjs",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "node --test tests/tree-model.test.mjs && node --check background.js && node --check sidebar.js && node --check tree-model.mjs",
+                    "result": "The tree-model tests passed and all three JavaScript modules passed syntax checking."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "2.8.4",
+              "label": "Inspect all shortcut references after the correction",
+              "children": [
+                {
+                  "id": "2.8.4.1",
+                  "label": "rg -n \"Ctrl\\+Alt\\+Shift\\+T|Ctrl\\+Alt\\+C\" manifest.json README.md sidebar.html",
+                  "evidence": {
+                    "kind": "search",
+                    "value": "rg -n \"Ctrl\\+Alt\\+Shift\\+T|Ctrl\\+Alt\\+C\" manifest.json README.md sidebar.html",
+                    "result": "Observed only the corrected Ctrl+Alt+C shortcut in the manifest, sidebar tooltip, and README."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "2.8.5",
+              "label": "Commit and push the shortcut correction with the pending trace updates",
+              "children": [
+                {
+                  "id": "2.8.5.1",
+                  "label": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension add README.md manifest.json sidebar.html summary.md traces.json",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension add README.md manifest.json sidebar.html summary.md traces.json",
+                    "result": "Staged the shortcut correction, synchronized documentation, verification summary, and ATML trace."
+                  }
+                },
+                {
+                  "id": "2.8.5.2",
+                  "label": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension commit -m \"Fix Firefox command shortcut\"",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension commit -m \"Fix Firefox command shortcut\"",
+                    "result": "Created a follow-up commit containing the Firefox-valid shortcut and trace updates."
+                  }
+                },
+                {
+                  "id": "2.8.5.3",
+                  "label": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension push",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension push",
+                    "result": "Successfully pushed the shortcut correction and trace updates to origin/main."
+                  }
+                },
+                {
+                  "id": "2.8.5.4",
+                  "label": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension status --short --branch && git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension log -1 --oneline && git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension remote -v",
+                  "evidence": {
+                    "kind": "inspect_diff",
+                    "value": "git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension status --short --branch && git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension log -1 --oneline && git --git-dir=/tmp/tree-tab-extension-git/.git --work-tree=/home/balalida/tree-tab-extension remote -v",
+                    "result": "Observed a clean main branch tracking origin/main with the requested GitHub remote."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "2.8.6",
+              "label": "Validate positional ATML identifiers and changed-file evidence before the final push",
+              "children": [
+                {
+                  "id": "2.8.6.1",
+                  "label": "node --input-type=module -e 'import fs from \"node:fs\"; const trace=JSON.parse(fs.readFileSync(\"traces.json\",\"utf8\")); const ids=new Set(); let leaves=0; function walk(nodes,prefix=\"\"){ nodes.forEach((node,index)=>{ const expected=(prefix?prefix+\".\":\"\")+(index+1); if(node.id!==expected) throw new Error(\"non-positional id \"+node.id+\" expected \"+expected); if(ids.has(node.id)) throw new Error(\"duplicate id \"+node.id); ids.add(node.id); const branch=Array.isArray(node.children); if(branch === (\"evidence\" in node)) throw new Error(\"invalid branch/leaf \"+node.id); if(branch){ if(node.children.length===0) throw new Error(\"empty branch \"+node.id); walk(node.children,node.id); } else { if(!node.evidence?.kind || !node.evidence?.value) throw new Error(\"missing evidence \"+node.id); if([\"create_file\",\"modify_file\"].includes(node.evidence.kind)){ const changes=node.evidence.file_changes??[]; if(changes.length!==1 || changes[0].path!==node.evidence.value) throw new Error(\"bad file change \"+node.id); } leaves+=1; } }); } walk(trace.tree); console.log(\"ATML positional shape: valid (\"+ids.size+\" nodes, \"+leaves+\" leaves)\");'",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "node --input-type=module -e 'import fs from \"node:fs\"; const trace=JSON.parse(fs.readFileSync(\"traces.json\",\"utf8\")); const ids=new Set(); let leaves=0; function walk(nodes,prefix=\"\"){ nodes.forEach((node,index)=>{ const expected=(prefix?prefix+\".\":\"\")+(index+1); if(node.id!==expected) throw new Error(\"non-positional id \"+node.id+\" expected \"+expected); if(ids.has(node.id)) throw new Error(\"duplicate id \"+node.id); ids.add(node.id); const branch=Array.isArray(node.children); if(branch === (\"evidence\" in node)) throw new Error(\"invalid branch/leaf \"+node.id); if(branch){ if(node.children.length===0) throw new Error(\"empty branch \"+node.id); walk(node.children,node.id); } else { if(!node.evidence?.kind || !node.evidence?.value) throw new Error(\"missing evidence \"+node.id); if([\"create_file\",\"modify_file\"].includes(node.evidence.kind)){ const changes=node.evidence.file_changes??[]; if(changes.length!==1 || changes[0].path!==node.evidence.value) throw new Error(\"bad file change \"+node.id); } leaves+=1; } }); } walk(trace.tree); console.log(\"ATML positional shape: valid (\"+ids.size+\" nodes, \"+leaves+\" leaves)\");'",
+                    "result": "The final trace passed positional-ID, branch/leaf, and changed-file evidence validation."
+                  }
+                }
+              ]
             }
           ]
         }

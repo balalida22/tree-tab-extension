@@ -37,7 +37,7 @@
     },
     "new-child-tab": {
       "suggested_key": {
-        "default": "Ctrl+Alt+Shift+T"
+        "default": "Ctrl+Alt+C"
       },
       "description": "Open a child tab under the active tab"
     },
