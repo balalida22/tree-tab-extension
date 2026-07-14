@@ -401,6 +401,132 @@
               ]
             }
           ]
+        },
+        {
+          "id": "1.10",
+          "label": "Align Firefox compatibility and produce a warning-free upload package",
+          "children": [
+            {
+              "id": "1.10.1",
+              "label": "Confirm the platform-specific consent compatibility boundaries",
+              "children": [
+                {
+                  "id": "1.10.1.1",
+                  "label": "Read Mozilla's Firefox built-in data-consent compatibility guidance",
+                  "evidence": {
+                    "kind": "inspect_value",
+                    "value": "https://extensionworkshop.com/documentation/develop/firefox-builtin-data-consent/",
+                    "result": "Mozilla documents built-in consent support in Firefox desktop 140 and Firefox for Android 142, with separate gecko and gecko_android minimum-version settings."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.10.2",
+              "label": "Set supported desktop and Android minimum versions",
+              "children": [
+                {
+                  "id": "1.10.2.1",
+                  "label": "Require Firefox desktop 140 and Firefox for Android 142",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "manifest.json",
+                    "file_changes": [
+                      {
+                        "path": "manifest.json",
+                        "action": "modify",
+                        "additions": 4,
+                        "deletions": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.10.3",
+              "label": "Lint the extension with the latest web-ext release",
+              "children": [
+                {
+                  "id": "1.10.3.1",
+                  "label": "npx web-ext@latest lint --source-dir . --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "npx web-ext@latest lint --source-dir . --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                    "result": "Validation completed with 0 errors, 0 notices, and 0 warnings."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.10.4",
+              "label": "Build the Firefox upload archive",
+              "children": [
+                {
+                  "id": "1.10.4.1",
+                  "label": "npx web-ext@latest build --source-dir . --overwrite-dest --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "npx web-ext@latest build --source-dir . --overwrite-dest --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                    "result": "Built web-ext-artifacts/tree_tabs-1.0.0.zip successfully."
+                  }
+                },
+                {
+                  "id": "1.10.4.2",
+                  "label": "Overwrite the generated upload archive",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "web-ext-artifacts/tree_tabs-1.0.0.zip",
+                    "file_changes": [
+                      {
+                        "path": "web-ext-artifacts/tree_tabs-1.0.0.zip",
+                        "action": "modify",
+                        "additions": null,
+                        "deletions": null
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.10.5",
+              "label": "Inspect the generated archive contents",
+              "children": [
+                {
+                  "id": "1.10.5.1",
+                  "label": "git status --short --branch && git diff -- manifest.json && unzip -l web-ext-artifacts/tree_tabs-1.0.0.zip",
+                  "evidence": {
+                    "kind": "inspect_diff",
+                    "value": "git status --short --branch && git diff -- manifest.json && unzip -l web-ext-artifacts/tree_tabs-1.0.0.zip",
+                    "result": "Observed the two platform minimum-version changes and a 34,280-byte archive containing the manifest, extension runtime files, and icon without the ignored documentation and trace files."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.10.6",
+              "label": "Record compatibility and packaging evidence",
+              "children": [
+                {
+                  "id": "1.10.6.1",
+                  "label": "Update the trace with minimum-version, lint, build, and archive evidence",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "traces.json",
+                    "file_changes": [
+                      {
+                        "path": "traces.json",
+                        "action": "modify",
+                        "additions": null,
+                        "deletions": null
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
