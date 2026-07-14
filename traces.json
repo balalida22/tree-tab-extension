@@ -849,6 +849,334 @@
               ]
             }
           ]
+        },
+        {
+          "id": "1.13",
+          "label": "Deliver persistent whole-subtree drag-and-drop and middle-click closing",
+          "children": [
+            {
+              "id": "1.13.1",
+              "label": "Confirm Firefox APIs for ordered movement and restart-safe tab state",
+              "children": [
+                {
+                  "id": "1.13.1.1",
+                  "label": "Read Firefox tabs.move documentation for ordered multi-tab movement",
+                  "evidence": {
+                    "kind": "inspect_value",
+                    "value": "https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/move",
+                    "result": "Firefox accepts an ordered array of tab IDs and moves the remaining tabs after the first when a destination window and index are supplied."
+                  }
+                },
+                {
+                  "id": "1.13.1.2",
+                  "label": "Read Firefox sessions state documentation for restart-safe tab metadata",
+                  "evidence": {
+                    "kind": "inspect_value",
+                    "value": "https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/sessions/setTabValue",
+                    "result": "Firefox sessions.setTabValue stores extension-owned state associated with a tab for later retrieval."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.13.2",
+              "label": "Model explicit tree parents and safe whole-subtree moves",
+              "children": [
+                {
+                  "id": "1.13.2.1",
+                  "label": "Prefer explicit parents, guard traversal cycles, and plan ordered subtree moves",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "tree-model.mjs",
+                    "file_changes": [
+                      {
+                        "path": "tree-model.mjs",
+                        "action": "modify",
+                        "additions": 57,
+                        "deletions": 1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.13.2.2",
+                  "label": "Cover parent overrides, root promotion, cycle rejection, and pinned boundaries",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "tests/tree-model.test.mjs",
+                    "file_changes": [
+                      {
+                        "path": "tests/tree-model.test.mjs",
+                        "action": "modify",
+                        "additions": 57,
+                        "deletions": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.13.3",
+              "label": "Persist custom parent relationships across Firefox restarts",
+              "children": [
+                {
+                  "id": "1.13.3.1",
+                  "label": "Create stable per-tab node IDs and custom parent resolution",
+                  "evidence": {
+                    "kind": "create_file",
+                    "value": "tree-state.mjs",
+                    "file_changes": [
+                      {
+                        "path": "tree-state.mjs",
+                        "action": "create",
+                        "additions": 47,
+                        "deletions": 0
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.13.3.2",
+                  "label": "Cover stable node IDs, root detachment, and restored parent resolution",
+                  "evidence": {
+                    "kind": "create_file",
+                    "value": "tests/tree-state.test.mjs",
+                    "file_changes": [
+                      {
+                        "path": "tests/tree-state.test.mjs",
+                        "action": "create",
+                        "additions": 38,
+                        "deletions": 0
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.13.3.3",
+                  "label": "Grant sessions state access and publish the feature as version 1.1.0",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "manifest.json",
+                    "file_changes": [
+                      {
+                        "path": "manifest.json",
+                        "action": "modify",
+                        "additions": 2,
+                        "deletions": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.13.4",
+              "label": "Apply subtree moves atomically in the background lifecycle",
+              "children": [
+                {
+                  "id": "1.13.4.1",
+                  "label": "Enrich snapshots and handle persisted move-tree requests before recursive closing",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "background.js",
+                    "file_changes": [
+                      {
+                        "path": "background.js",
+                        "action": "modify",
+                        "additions": 35,
+                        "deletions": 7
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.13.5",
+              "label": "Build discoverable drag targets and middle-click interaction",
+              "children": [
+                {
+                  "id": "1.13.5.1",
+                  "label": "Add the temporary top-level-tree drop zone",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "sidebar.html",
+                    "file_changes": [
+                      {
+                        "path": "sidebar.html",
+                        "action": "modify",
+                        "additions": 5,
+                        "deletions": 0
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.13.5.2",
+                  "label": "Style drag grips, active row targets, dragged rows, and root detachment",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "sidebar.css",
+                    "file_changes": [
+                      {
+                        "path": "sidebar.css",
+                        "action": "modify",
+                        "additions": 60,
+                        "deletions": 0
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.13.5.3",
+                  "label": "Wire drag lifecycle, target validation, root drops, persistence refresh, and middle-click close",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "sidebar.js",
+                    "file_changes": [
+                      {
+                        "path": "sidebar.js",
+                        "action": "modify",
+                        "additions": 146,
+                        "deletions": 2
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.13.6",
+              "label": "Document subtree dragging, detachment, and middle-click closing",
+              "children": [
+                {
+                  "id": "1.13.6.1",
+                  "label": "Add the new tree manipulation gestures to features and daily use",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "README.md",
+                    "file_changes": [
+                      {
+                        "path": "README.md",
+                        "action": "modify",
+                        "additions": 5,
+                        "deletions": 0
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.13.7",
+              "label": "Verify models, persistence, syntax, manifest integration, and packaging",
+              "children": [
+                {
+                  "id": "1.13.7.1",
+                  "label": "node --test tests/*.test.mjs && node --check background.js && node --check sidebar.js && node --check tree-model.mjs && node --check tree-state.mjs",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "node --test tests/*.test.mjs && node --check background.js && node --check sidebar.js && node --check tree-model.mjs && node --check tree-state.mjs",
+                    "result": "Both test files passed and all four extension JavaScript modules passed syntax checking."
+                  }
+                },
+                {
+                  "id": "1.13.7.2",
+                  "label": "npx web-ext@latest lint --source-dir . --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "npx web-ext@latest lint --source-dir . --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                    "result": "Validation completed with 0 errors, 0 notices, and 0 warnings."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.13.8",
+              "label": "Build the Firefox 1.1.0 upload package",
+              "children": [
+                {
+                  "id": "1.13.8.1",
+                  "label": "npx web-ext@latest build --source-dir . --overwrite-dest --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                  "evidence": {
+                    "kind": "run_command",
+                    "value": "npx web-ext@latest build --source-dir . --overwrite-dest --ignore-files README.md summary.md traces.json tree-browser-README.md tree-browser-traces.json \"tests/**\"",
+                    "result": "Built web-ext-artifacts/tree_tabs-1.1.0.zip successfully."
+                  }
+                },
+                {
+                  "id": "1.13.8.2",
+                  "label": "Create the Firefox 1.1.0 upload archive",
+                  "evidence": {
+                    "kind": "create_file",
+                    "value": "web-ext-artifacts/tree_tabs-1.1.0.zip",
+                    "file_changes": [
+                      {
+                        "path": "web-ext-artifacts/tree_tabs-1.1.0.zip",
+                        "action": "create",
+                        "additions": null,
+                        "deletions": 0
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.13.9",
+              "label": "Inspect the final source diff and built archive",
+              "children": [
+                {
+                  "id": "1.13.9.1",
+                  "label": "git diff --check && unzip -t web-ext-artifacts/tree_tabs-1.1.0.zip && unzip -p web-ext-artifacts/tree_tabs-1.1.0.zip manifest.json | jq '{version, permissions}' && unzip -p web-ext-artifacts/tree_tabs-1.1.0.zip sidebar.js | rg -n 'dragstart|move-tree|auxclick|Middle-click' && git diff --numstat && wc -l tree-state.mjs tests/tree-state.test.mjs",
+                  "evidence": {
+                    "kind": "inspect_diff",
+                    "value": "git diff --check && unzip -t web-ext-artifacts/tree_tabs-1.1.0.zip && unzip -p web-ext-artifacts/tree_tabs-1.1.0.zip manifest.json | jq '{version, permissions}' && unzip -p web-ext-artifacts/tree_tabs-1.1.0.zip sidebar.js | rg -n 'dragstart|move-tree|auxclick|Middle-click' && git diff --numstat && wc -l tree-state.mjs tests/tree-state.test.mjs",
+                    "result": "The diff passed whitespace checks; the ZIP passed integrity checks and contained version 1.1.0, the sessions permission, drag/move/middle-click wiring, and attributable source line counts."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1.13.10",
+              "label": "Record verification scope and drag-and-drop implementation evidence",
+              "children": [
+                {
+                  "id": "1.13.10.1",
+                  "label": "Update automated coverage and live-browser verification scope",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "summary.md",
+                    "file_changes": [
+                      {
+                        "path": "summary.md",
+                        "action": "modify",
+                        "additions": 4,
+                        "deletions": 4
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "1.13.10.2",
+                  "label": "Update the trace with model, persistence, UI, testing, and packaging evidence",
+                  "evidence": {
+                    "kind": "modify_file",
+                    "value": "traces.json",
+                    "file_changes": [
+                      {
+                        "path": "traces.json",
+                        "action": "modify",
+                        "additions": null,
+                        "deletions": null
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },

@@ -14,7 +14,9 @@ function hasParentInWindow(tab, parent, byId) {
  * Return a tab's valid opener in the same window, or null when it is a root.
  */
 export function getParentId(tab, byId) {
-  const parent = tab.openerTabId;
+  const parent = Object.hasOwn(tab, "treeParentId")
+    ? tab.treeParentId
+    : tab.openerTabId;
   if (!Number.isInteger(parent) || parent === tab.id) {
     return null;
   }
@@ -103,8 +105,13 @@ export function collectSubtreeIds(tabs, rootId) {
 
   const result = [];
   const pending = [rootId];
+  const visited = new Set();
   while (pending.length > 0) {
     const tabId = pending.pop();
+    if (visited.has(tabId)) {
+      continue;
+    }
+    visited.add(tabId);
     result.push(tabId);
     const children = childrenByParent.get(tabId) ?? [];
     for (let index = children.length - 1; index >= 0; index -= 1) {
@@ -112,4 +119,53 @@ export function collectSubtreeIds(tabs, rootId) {
     }
   }
   return result;
+}
+
+/**
+ * Plan a whole-subtree move in Firefox's flat tab strip.
+ *
+ * A null parent makes the subtree a root. Otherwise, the subtree becomes the
+ * target's first child. Moving a mixed pinned/unpinned subtree, or nesting
+ * across the pinned boundary, is not supported by Firefox's tabs.move API.
+ */
+export function planSubtreeMove(tabs, rootId, parentId) {
+  const byId = new Map(tabs.map((tab) => [tab.id, tab]));
+  const root = byId.get(rootId);
+  if (!root) {
+    throw new Error("The dragged tab is no longer available.");
+  }
+
+  const tabIds = collectSubtreeIds(tabs, rootId);
+  const subtreeIds = new Set(tabIds);
+  const subtreeTabs = tabIds.map((tabId) => byId.get(tabId));
+  if (subtreeTabs.some((tab) => tab.pinned !== root.pinned)) {
+    throw new Error("A subtree cannot mix pinned and unpinned tabs while moving.");
+  }
+
+  if (parentId === null) {
+    const pinnedCount = tabs.filter((tab) => tab.pinned).length;
+    return {
+      tabIds,
+      parentId: null,
+      index: root.pinned ? pinnedCount - tabIds.length : -1,
+    };
+  }
+
+  const parent = byId.get(parentId);
+  if (!parent) {
+    throw new Error("The destination tab is no longer available.");
+  }
+  if (subtreeIds.has(parentId)) {
+    throw new Error("A subtree cannot be moved into itself.");
+  }
+  if (parent.pinned !== root.pinned) {
+    throw new Error("Pinned and unpinned tabs cannot share a subtree.");
+  }
+
+  const removedBeforeParent = subtreeTabs.filter((tab) => tab.index < parent.index).length;
+  return {
+    tabIds,
+    parentId,
+    index: parent.index + 1 - removedBeforeParent,
+  };
 }

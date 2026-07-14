@@ -1,4 +1,5 @@
-import { collectSubtreeIds } from "./tree-model.mjs";
+import { collectSubtreeIds, planSubtreeMove } from "./tree-model.mjs";
+import { enrichTabsWithTreeState, setTabTreeParent } from "./tree-state.mjs";
 
 const CHILD_LINK_MENU_ID = "open-link-in-child-tab";
 const snapshots = new Map();
@@ -8,7 +9,7 @@ let contextMenuSetup = Promise.resolve();
 
 async function loadSnapshots() {
   try {
-    const tabs = await browser.tabs.query({});
+    const tabs = await enrichTabsWithTreeState(await browser.tabs.query({}));
     for (const tab of tabs) {
       rememberTab(tab);
     }
@@ -22,7 +23,7 @@ function rememberTab(tab) {
     return;
   }
   const windowTabs = snapshots.get(tab.windowId) ?? new Map();
-  windowTabs.set(tab.id, tab);
+  windowTabs.set(tab.id, { ...windowTabs.get(tab.id), ...tab });
   snapshots.set(tab.windowId, windowTabs);
 }
 
@@ -38,10 +39,28 @@ function forgetTab(windowId, tabId) {
 }
 
 async function getWindowTabs(windowId) {
-  const tabs = await browser.tabs.query({ windowId });
+  const tabs = await enrichTabsWithTreeState(await browser.tabs.query({ windowId }));
   const windowTabs = new Map(tabs.map((tab) => [tab.id, tab]));
   snapshots.set(windowId, windowTabs);
   return tabs;
+}
+
+async function moveTree(tabId, parentId) {
+  const tab = await browser.tabs.get(tabId);
+  const tabs = await getWindowTabs(tab.windowId);
+  const plan = planSubtreeMove(tabs, tabId, parentId);
+
+  await setTabTreeParent(tabId, parentId);
+  const moved = await browser.tabs.move(plan.tabIds, {
+    windowId: tab.windowId,
+    index: plan.index,
+  });
+  const movedTabs = Array.isArray(moved) ? moved : [moved];
+  if (movedTabs.filter(Boolean).length !== plan.tabIds.length) {
+    throw new Error("Firefox could not move every tab in that subtree.");
+  }
+
+  await getWindowTabs(tab.windowId);
 }
 
 async function closeTree(tabId, windowId) {
@@ -132,11 +151,20 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
 });
 
 browser.runtime.onMessage.addListener((message) => {
-  if (message?.type !== "close-tree" || !Number.isInteger(message.tabId)) {
+  if (!Number.isInteger(message?.tabId)) {
     return undefined;
   }
 
-  return browser.tabs.get(message.tabId).then((tab) => closeTree(tab.id, tab.windowId));
+  if (message.type === "close-tree") {
+    return browser.tabs.get(message.tabId).then((tab) => closeTree(tab.id, tab.windowId));
+  }
+
+  if (message.type === "move-tree"
+      && (message.parentId === null || Number.isInteger(message.parentId))) {
+    return moveTree(message.tabId, message.parentId);
+  }
+
+  return undefined;
 });
 
 browser.commands.onCommand.addListener((command) => {
@@ -241,7 +269,7 @@ browser.tabs.onReplaced.addListener((addedTabId, removedTabId) => {
     try {
       const tab = await browser.tabs.get(addedTabId);
       forgetTab(tab.windowId, removedTabId);
-      rememberTab(tab);
+      await getWindowTabs(tab.windowId);
     } catch (error) {
       console.warn("Tree Tabs could not refresh a replaced tab.", error);
     }

@@ -1,4 +1,5 @@
 import { buildTree, collectSubtreeIds } from "./tree-model.mjs";
+import { enrichTabsWithTreeState } from "./tree-state.mjs";
 
 const COLLAPSED_STORAGE_KEY = "collapsedByWindow";
 
@@ -10,6 +11,7 @@ const state = {
   refreshTimer: null,
   storageTimer: null,
   messageTimer: null,
+  draggedTabId: null,
 };
 
 const treeElement = document.getElementById("tree");
@@ -17,6 +19,7 @@ const emptyStateElement = document.getElementById("empty-state");
 const tabCountElement = document.getElementById("tab-count");
 const windowLabelElement = document.getElementById("window-label");
 const messageElement = document.getElementById("message");
+const rootDropElement = document.getElementById("root-drop-zone");
 
 function tabIdFromRow(row) {
   const tabId = Number(row?.dataset.tabId);
@@ -119,6 +122,16 @@ function createTabNode(node, depth) {
   row.style.setProperty("--depth", String(depth));
   row.classList.toggle("is-active", tab.active);
 
+  const dragHandle = document.createElement("span");
+  dragHandle.className = "drag-handle";
+  dragHandle.draggable = true;
+  dragHandle.tabIndex = 0;
+  dragHandle.setAttribute("role", "button");
+  dragHandle.setAttribute("aria-label", `Drag ${tabTitle(tab)} and its subtree`);
+  dragHandle.title = "Drag this subtree";
+  dragHandle.textContent = "⠿";
+  row.append(dragHandle);
+
   const hasChildren = node.children.length > 0;
   const isCollapsed = state.collapsed.has(tab.id);
   if (hasChildren) {
@@ -143,7 +156,7 @@ function createTabNode(node, depth) {
   tabButton.setAttribute("role", "treeitem");
   tabButton.setAttribute("aria-level", String(depth + 1));
   tabButton.setAttribute("aria-selected", String(tab.active));
-  tabButton.title = `${tabTitle(tab)}\n${tab.url ?? ""}`;
+  tabButton.title = `${tabTitle(tab)}\n${tab.url ?? ""}\nMiddle-click to close this subtree`;
   tabButton.append(createFavicon(tab));
 
   const copy = document.createElement("span");
@@ -252,7 +265,9 @@ function saveCollapsedState() {
 async function refresh() {
   const serial = ++state.refreshSerial;
   try {
-    const tabs = await browser.tabs.query({ windowId: state.windowId });
+    const tabs = await enrichTabsWithTreeState(
+      await browser.tabs.query({ windowId: state.windowId }),
+    );
     if (serial !== state.refreshSerial) {
       return;
     }
@@ -298,6 +313,20 @@ async function closeSelectedTree(tabId) {
     // reloaded. Refreshing gives the user an immediate, harmless recovery.
     showMessage("Firefox could not close that tree yet.");
     console.warn("Tree Tabs could not close a tree.", error);
+    scheduleRefresh();
+  }
+}
+
+async function moveSelectedTree(tabId, parentId) {
+  try {
+    await browser.runtime.sendMessage({ type: "move-tree", tabId, parentId });
+    if (parentId !== null) {
+      state.collapsed.delete(parentId);
+    }
+    await refresh();
+  } catch (error) {
+    showMessage(error?.message || "Firefox could not move that subtree.");
+    console.warn("Tree Tabs could not move a subtree.", error);
     scheduleRefresh();
   }
 }
@@ -353,6 +382,111 @@ async function handleTreeClick(event) {
   if (action === "activate") {
     await activateTab(tabId);
   }
+}
+
+function draggedSubtreeIds() {
+  return new Set(collectSubtreeIds(state.tabs, state.draggedTabId));
+}
+
+function clearDragPresentation() {
+  treeElement.querySelectorAll(".is-dragging, .is-drop-target").forEach((element) => {
+    element.classList.remove("is-dragging", "is-drop-target");
+  });
+  rootDropElement.classList.remove("is-drop-target");
+  rootDropElement.hidden = true;
+  document.body.classList.remove("is-dragging");
+}
+
+function finishDrag() {
+  clearDragPresentation();
+  state.draggedTabId = null;
+}
+
+function handleTreeDragStart(event) {
+  const handle = event.target instanceof Element
+    ? event.target.closest(".drag-handle")
+    : null;
+  const row = rowFromTarget(handle);
+  const tabId = tabIdFromRow(row);
+  if (!handle || tabId === null || !event.dataTransfer) {
+    event.preventDefault();
+    return;
+  }
+
+  state.draggedTabId = tabId;
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", String(tabId));
+  row.classList.add("is-dragging");
+  rootDropElement.hidden = false;
+  document.body.classList.add("is-dragging");
+}
+
+function handleTreeDragOver(event) {
+  const row = rowFromTarget(event.target);
+  const targetId = tabIdFromRow(row);
+  if (state.draggedTabId === null
+      || targetId === null
+      || draggedSubtreeIds().has(targetId)) {
+    return;
+  }
+
+  event.preventDefault();
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = "move";
+  }
+  treeElement.querySelectorAll(".is-drop-target").forEach((element) => {
+    element.classList.remove("is-drop-target");
+  });
+  row.classList.add("is-drop-target");
+}
+
+function handleTreeDrop(event) {
+  const row = rowFromTarget(event.target);
+  const parentId = tabIdFromRow(row);
+  const tabId = state.draggedTabId;
+  if (tabId === null || parentId === null || draggedSubtreeIds().has(parentId)) {
+    return;
+  }
+
+  event.preventDefault();
+  finishDrag();
+  void moveSelectedTree(tabId, parentId);
+}
+
+function handleRootDragOver(event) {
+  if (state.draggedTabId === null) {
+    return;
+  }
+  event.preventDefault();
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = "move";
+  }
+  rootDropElement.classList.add("is-drop-target");
+}
+
+function handleRootDrop(event) {
+  const tabId = state.draggedTabId;
+  if (tabId === null) {
+    return;
+  }
+  event.preventDefault();
+  finishDrag();
+  void moveSelectedTree(tabId, null);
+}
+
+function handleTreeAuxClick(event) {
+  if (event.button !== 1 || !(event.target instanceof Element)) {
+    return;
+  }
+  const tabButton = event.target.closest(".tab-button");
+  const tabId = tabIdFromRow(rowFromTarget(tabButton));
+  if (!tabButton || tabId === null) {
+    return;
+  }
+
+  event.preventDefault();
+  event.stopPropagation();
+  void closeSelectedTree(tabId);
 }
 
 function moveFocus(delta) {
@@ -461,6 +595,16 @@ document.getElementById("expand-all").addEventListener("click", () => {
 treeElement.addEventListener("click", (event) => {
   void handleTreeClick(event);
 });
+treeElement.addEventListener("auxclick", handleTreeAuxClick);
+treeElement.addEventListener("dragstart", handleTreeDragStart);
+treeElement.addEventListener("dragover", handleTreeDragOver);
+treeElement.addEventListener("drop", handleTreeDrop);
+treeElement.addEventListener("dragend", finishDrag);
+rootDropElement.addEventListener("dragover", handleRootDragOver);
+rootDropElement.addEventListener("dragleave", () => {
+  rootDropElement.classList.remove("is-drop-target");
+});
+rootDropElement.addEventListener("drop", handleRootDrop);
 document.addEventListener("keydown", handleKeyboard);
 
 async function initialize() {
